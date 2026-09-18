@@ -7,9 +7,8 @@ import { Play, Pause, Server, Zap, ArrowRight, Loader2 } from 'lucide-react';
 const springConfig = { type: "spring", stiffness: 400, damping: 30, bounce: 0 };
 const fastSpring = { type: "spring", stiffness: 500, damping: 40, bounce: 0 };
 
-// --- NEW COMPONENT: Dense Neural Network Visualizer ---
+// --- Dense Neural Network Visualizer (One-Shot Sequential Animation) ---
 const NeuralGraph = ({ isActive }: { isActive: boolean }) => {
-  // Define layers: [Input, Hidden1, Hidden2, Output]
   const layers = [4, 6, 5, 3];
   const width = 300;
   const height = 180;
@@ -21,12 +20,7 @@ const NeuralGraph = ({ isActive }: { isActive: boolean }) => {
       const yStep = height / Math.max(1, nodeCount);
       const yOffset = (height - (nodeCount - 1) * yStep) / 2;
       for (let i = 0; i < nodeCount; i++) {
-        result.push({
-          id: `L${layerIdx}-N${i}`,
-          layer: layerIdx,
-          x: layerIdx * xStep,
-          y: yOffset + i * yStep
-        });
+        result.push({ id: `L${layerIdx}-N${i}`, layer: layerIdx, x: layerIdx * xStep, y: yOffset + i * yStep });
       }
     });
     return result;
@@ -37,12 +31,10 @@ const NeuralGraph = ({ isActive }: { isActive: boolean }) => {
     for (let l = 0; l < layers.length - 1; l++) {
       const currentLayerNodes = nodes.filter(n => n.layer === l);
       const nextLayerNodes = nodes.filter(n => n.layer === l + 1);
-      
       currentLayerNodes.forEach(source => {
         nextLayerNodes.forEach(target => {
-          // Assign a random "weight" for visual simulation
           const weight = Math.random();
-          result.push({ id: `${source.id}-${target.id}`, source, target, weight });
+          result.push({ id: `${source.id}-${target.id}`, source, target, weight, layer: l });
         });
       });
     }
@@ -52,49 +44,46 @@ const NeuralGraph = ({ isActive }: { isActive: boolean }) => {
   return (
     <div className="relative w-full h-full flex items-center justify-center p-4">
       <svg width={width} height={height} className="overflow-visible">
-        {/* Draw Connections */}
-        {connections.map((c, i) => (
+        {connections.map((c) => (
           <motion.line
             key={c.id}
             x1={c.source.x} y1={c.source.y}
             x2={c.target.x} y2={c.target.y}
-            stroke={c.weight > 0.8 ? "rgba(16, 185, 129, 0.4)" : c.weight > 0.5 ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.05)"}
+            stroke={c.weight > 0.8 ? "rgba(16, 185, 129, 0.4)" : "rgba(255, 255, 255, 0.05)"}
             strokeWidth={c.weight > 0.8 ? 1.5 : 1}
-            initial={{ opacity: 0.3 }}
+            initial={{ opacity: 0.1 }}
             animate={isActive ? {
-              opacity: [0.1, c.weight, 0.1],
-              stroke: ["rgba(255,255,255,0.05)", "rgba(16,185,129,0.8)", "rgba(255,255,255,0.05)"]
-            } : { opacity: 0.3 }}
+              opacity: [0.1, Math.max(0.4, c.weight), 0.1],
+              stroke: ["rgba(255,255,255,0.05)", "rgba(16,185,129,0.9)", "rgba(255,255,255,0.05)"]
+            } : { opacity: 0.1, stroke: "rgba(255,255,255,0.05)" }}
             transition={{
-              duration: 0.8 + c.weight,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: c.source.layer * 0.2 + (c.weight * 0.5) // Cascades left to right based on layer
+              duration: 0.4, // Fast sweep
+              times: [0, 0.5, 1], // Peak in the middle
+              delay: c.layer * 0.1, // Cascades exactly once through layers
+              ease: "easeInOut"
             }}
           />
         ))}
 
-        {/* Draw Nodes */}
-        {nodes.map((n, i) => (
+        {nodes.map((n) => (
           <motion.circle
             key={n.id}
             cx={n.x} cy={n.y} r={4}
-            className="fill-[#0A0A0A] stroke-white/40"
+            className="fill-[#0A0A0A] stroke-white/20"
             strokeWidth={1.5}
             animate={isActive ? {
               fill: ["#0A0A0A", "#10B981", "#0A0A0A"],
-              stroke: ["rgba(255,255,255,0.4)", "rgba(16,185,129,1)", "rgba(255,255,255,0.4)"]
-            } : {}}
+              stroke: ["rgba(255,255,255,0.2)", "rgba(16,185,129,1)", "rgba(255,255,255,0.2)"]
+            } : { fill: "#0A0A0A", stroke: "rgba(255,255,255,0.2)" }}
             transition={{
-              duration: 1,
-              repeat: Infinity,
-              delay: n.layer * 0.2,
+              duration: 0.4,
+              times: [0, 0.5, 1],
+              delay: n.layer * 0.1,
               ease: "easeInOut"
             }}
           />
         ))}
       </svg>
-      
       <div className="absolute -bottom-6 flex justify-between w-full max-w-[300px] text-[9px] font-mono text-white/40 uppercase tracking-widest px-2">
         <span>Input</span>
         <span>Hidden</span>
@@ -107,8 +96,7 @@ const NeuralGraph = ({ isActive }: { isActive: boolean }) => {
 export function App() {
   const {
     selectedModel, setSelectedModel, isConnected, checkConnection,
-    prompt, setPrompt, isGenerating, startGeneration, stopGeneration,
-    steps: rawSteps
+    prompt, setPrompt, isGenerating, startGeneration, stopGeneration, steps: rawSteps
   } = useMicroscope();
 
   const [engineMode, setEngineMode] = useState<'vercel' | 'local'>('vercel');
@@ -122,8 +110,6 @@ export function App() {
   const { visualizedSteps, currentAnimStep, stage, isPlaying, setIsPlaying } = usePipelineVisualizer(rawSteps, isGenerating);
 
   const isPipelineActive = isGenerating || visualizedSteps.length > 0;
-  const mockTokens = prompt.split(' ').filter(Boolean);
-  
   const logprobs = currentAnimStep?.alternatives || [];
   const topAlternative = logprobs[0]?.probability || 1;
 
@@ -224,29 +210,18 @@ export function App() {
                <p className="text-[12px] text-white/40 mt-1 max-w-sm">Enter a prompt and click Generate to visually trace the token prediction loop.</p>
             </div>
           ) : (
-            <div className="flex-1 p-8 grid grid-cols-[1.5fr_2.5fr_1.5fr_1fr] gap-6 relative overflow-hidden">
+            /* REARRANGED COLUMNS: FF Network -> Probs -> Selected -> Context */
+            <div className="flex-1 p-8 grid grid-cols-[2.5fr_1.5fr_1fr_1.5fr] gap-6 relative overflow-hidden">
               
-              <div className="flex flex-col gap-3 relative z-10">
-                <h3 className="text-[10px] uppercase font-mono tracking-widest text-[#888] flex items-center gap-2">Context Array</h3>
-                <div className="flex-1 rounded-lg border border-white/[0.06] bg-[#0A0A0A] p-3 flex flex-col gap-1.5 overflow-y-auto shadow-inner">
-                  <AnimatePresence>
-                    {visualizedSteps.map((step) => (
-                      <motion.div layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={springConfig} key={step.index} className="px-2 py-1.5 rounded bg-white/[0.04] text-[11px] font-mono text-[#A0A0A0] border border-white/[0.02]">
-                        {step.tokenText === '\n' ? '↵' : step.tokenText}
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* REPLACED: NEW DENSE NEURAL NETWORK COMPONENT */}
+              {/* 1. Feed Forward Network */}
               <div className="flex flex-col gap-3 relative z-10">
                 <h3 className="text-[10px] uppercase font-mono tracking-widest text-[#888] flex items-center gap-2">Feed Forward Network</h3>
                 <div className="flex-1 rounded-lg border border-white/[0.06] bg-[#0A0A0A] relative overflow-hidden shadow-inner flex items-center justify-center">
-                   <NeuralGraph isActive={stage === 'inference' || isGenerating} />
+                   <NeuralGraph isActive={stage === 'inference'} />
                 </div>
               </div>
 
+              {/* 2. Probabilities */}
               <div className="flex flex-col gap-3 relative z-10">
                 <h3 className="text-[10px] uppercase font-mono tracking-widest text-[#888] flex items-center gap-2">Probabilities</h3>
                 <div className="flex-1 rounded-lg border border-white/[0.06] bg-[#0A0A0A] p-4 flex flex-col justify-center gap-3 shadow-inner">
@@ -266,15 +241,30 @@ export function App() {
                 </div>
               </div>
 
+              {/* 3. Selected Token */}
               <div className="flex flex-col gap-3 relative z-10">
                 <h3 className="text-[10px] uppercase font-mono tracking-widest text-[#888] flex items-center gap-2">Selected</h3>
                 <div className="flex-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 flex items-center justify-center relative overflow-hidden shadow-inner">
                   <AnimatePresence mode="wait">
-                    {currentAnimStep?.tokenText && (stage === 'selection' || stage === 'token' || stage === 'append') && (
+                    {currentAnimStep?.tokenText && (stage === 'selection' || stage === 'append') && (
                       <motion.div key={currentAnimStep.tokenText + currentAnimStep.index} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={springConfig} className="px-4 py-2 rounded-md bg-white border border-white text-[13px] font-mono text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                         {currentAnimStep.tokenText === '\n' ? '↵' : currentAnimStep.tokenText}
                       </motion.div>
                     )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* 4. Context Array */}
+              <div className="flex flex-col gap-3 relative z-10">
+                <h3 className="text-[10px] uppercase font-mono tracking-widest text-[#888] flex items-center gap-2 text-right justify-end">Context Array</h3>
+                <div className="flex-1 rounded-lg border border-white/[0.06] bg-[#0A0A0A] p-3 flex flex-col gap-1.5 overflow-y-auto shadow-inner items-end">
+                  <AnimatePresence>
+                    {visualizedSteps.map((step) => (
+                      <motion.div layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={springConfig} key={step.index} className="px-2 py-1.5 rounded bg-white/[0.04] text-[11px] font-mono text-[#A0A0A0] border border-white/[0.02]">
+                        {step.tokenText === '\n' ? '↵' : step.tokenText}
+                      </motion.div>
+                    ))}
                   </AnimatePresence>
                 </div>
               </div>
