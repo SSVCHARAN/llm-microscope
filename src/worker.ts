@@ -1,10 +1,10 @@
 import { AutoTokenizer, AutoModelForCausalLM, env } from '@huggingface/transformers';
 
-// Tell transformers.js to load from the local public/models directory!
+// Tell transformers.js to load from the local public/models directory
 env.allowLocalModels = true;
 env.useBrowserCache = false;
 env.allowRemoteModels = false;
-env.localModelPath = '/models/'; // This points to localhost:5173/models/
+env.localModelPath = '/models/';
 
 let tokenizer: any = null;
 let model: any = null;
@@ -22,12 +22,14 @@ self.addEventListener('message', async (event) => {
             }
             if (!model) {
                 model = await AutoModelForCausalLM.from_pretrained(modelId, {
+                    dtype: 'fp32', // Matches decoder_model_merged_quantized.onnx directly without adding suffix
                     model_file_name: 'decoder_model_merged_quantized',
                     progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'model', ...x })
                 });
             }
             self.postMessage({ status: 'ready' });
         } catch (e) {
+            console.error('[WORKER LOAD ERROR]', e);
             self.postMessage({ status: 'error', error: String(e) });
         }
     } 
@@ -67,8 +69,8 @@ self.addEventListener('message', async (event) => {
 
             self.postMessage({ status: 'complete' });
         } catch (e) {
+            console.error('[WORKER GENERATE ERROR]', e);
             self.postMessage({ status: 'error', error: String(e) });
         }
     }
 });
-// CACHE BUST Fri Sep 18 10:28:51 AM IST 2026
