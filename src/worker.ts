@@ -1,6 +1,9 @@
 import { AutoTokenizer, AutoModelForCausalLM, env } from '@huggingface/transformers';
 
-env.allowLocalModels = false;
+// Tell transformers.js to load from the local public/models directory!
+env.allowLocalModels = true;
+env.allowRemoteModels = false;
+env.localModelPath = '/models/'; // This points to localhost:5173/models/
 
 let tokenizer: any = null;
 let model: any = null;
