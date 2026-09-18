@@ -2,6 +2,7 @@ import { AutoTokenizer, AutoModelForCausalLM, env } from '@huggingface/transform
 
 // Tell transformers.js to load from the local public/models directory!
 env.allowLocalModels = true;
+env.useBrowserCache = false;
 env.allowRemoteModels = false;
 env.localModelPath = '/models/'; // This points to localhost:5173/models/
 
@@ -70,3 +71,4 @@ self.addEventListener('message', async (event) => {
         }
     }
 });
+// CACHE BUST Fri Sep 18 10:28:51 AM IST 2026
