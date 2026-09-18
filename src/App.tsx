@@ -91,7 +91,7 @@ export function App() {
   const {
     selectedModel, isConnected, prompt, setPrompt, 
     isGenerating, startGeneration, stopGeneration, steps: rawSteps,
-    loadingProgress, isEngineReady
+    loadingProgress, isEngineReady, engineError
   } = useMicroscope();
 
   const [isFocused, setIsFocused] = useState(false);
