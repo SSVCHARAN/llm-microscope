@@ -21,7 +21,7 @@ self.addEventListener('message', async (event) => {
             }
             if (!model) {
                 model = await AutoModelForCausalLM.from_pretrained(modelId, {
-                    dtype: 'q4', // Quantized for web
+                    model_file_name: 'decoder_model_merged_quantized',
                     progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'model', ...x })
                 });
             }
