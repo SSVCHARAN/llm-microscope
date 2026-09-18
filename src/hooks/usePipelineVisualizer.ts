@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GenerationStep } from '../types';
 
 export type PipelineStage = 'idle' | 'context' | 'inference' | 'selection' | 'append';
@@ -27,36 +27,37 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
   const queueLength = rawSteps.length - nextIndex;
 
   const advancePhase = useCallback(() => {
-    setStage(currentStage => {
-      if (currentStage === 'idle') {
-        if (nextIndex < rawSteps.length) {
-          setCurrentAnimStep(rawSteps[nextIndex]);
-          return 'context';
-        }
-        return 'idle'; // Nothing to process
+    // Determine the next state based on the current stage directly.
+    // Avoid putting side effects (setNextIndex, setVisualizedSteps) inside a setStage functional updater,
+    // because React Strict Mode will call the functional updater twice, skipping tokens!
+    
+    if (stage === 'idle') {
+      if (nextIndex < rawSteps.length) {
+        setCurrentAnimStep(rawSteps[nextIndex]);
+        setStage('context');
       }
-      if (currentStage === 'append') {
+    } else if (stage === 'append') {
+      if (currentAnimStep) {
         setVisualizedSteps(prev => {
-          if (currentAnimStep && !prev.find(s => s.index === currentAnimStep.index)) {
+          if (!prev.find(s => s.index === currentAnimStep.index)) {
             return [...prev, currentAnimStep];
           }
           return prev;
         });
-        setNextIndex(prev => prev + 1);
-        return 'idle';
       }
-      const idx = STAGES.indexOf(currentStage);
-      return STAGES[idx + 1] as PipelineStage;
-    });
-  }, [nextIndex, rawSteps, currentAnimStep]);
+      setNextIndex(prev => prev + 1);
+      setStage('idle');
+    } else {
+      const idx = STAGES.indexOf(stage);
+      setStage(STAGES[idx + 1] as PipelineStage);
+    }
+  }, [stage, nextIndex, rawSteps, currentAnimStep]);
 
   const getDelayForStage = (currentStage: PipelineStage) => {
     if (currentStage === 'idle') return 50; 
-    
-    // Very snappy timings for a clear, rapid flow
     switch (currentStage) {
       case 'context': return 100;
-      case 'inference': return 400; // Time for the network animation to flow
+      case 'inference': return 400; 
       case 'selection': return 300;
       case 'append': return 150;
       default: return 100;
@@ -65,10 +66,7 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
 
   useEffect(() => {
     if (!isPlaying && queueLength > 0 && stage === 'idle') {
-      return; // Paused at idle
-    }
-    if (!isPlaying && stage !== 'idle') {
-      // Allow current token to finish its loop even if paused
+      return; 
     }
 
     const delay = getDelayForStage(stage);
