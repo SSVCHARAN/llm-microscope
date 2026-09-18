@@ -1,172 +1,133 @@
-import { useState, useRef, useCallback } from 'react';
-import { GenerationController, fetchModels } from '../api/lmstudio';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { GenerationStep, GenerationMetrics, ApiEvent } from '../types';
 
+let worker: Worker | null = null;
+if (typeof window !== 'undefined') {
+  worker = new Worker(new URL('../worker.ts', import.meta.url), { type: 'module' });
+}
+
 export function useMicroscope() {
-  const [models, setModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>('');
-  const [isConnected, setIsConnected] = useState(false);
-  
   const [prompt, setPrompt] = useState('Why is the sky blue? Answer in one sentence.');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEngineReady, setIsEngineReady] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState<{file: string, progress: number} | null>(null);
   
   const [steps, setSteps] = useState<GenerationStep[]>([]);
   const [metrics, setMetrics] = useState<GenerationMetrics>({
-    timeToFirstToken: null,
-    totalTime: null,
-    generatedTokens: 0,
-    promptTokens: null,
-    tokensPerSecond: null,
-    averageLatency: null,
-    currentLatency: null
+    timeToFirstToken: null, totalTime: null, generatedTokens: 0,
+    promptTokens: null, tokensPerSecond: null, averageLatency: null, currentLatency: null
   });
-  
-  const [events, setEvents] = useState<ApiEvent[]>([]);
-  
-  const controllerRef = useRef<GenerationController | null>(null);
-  
-  const checkConnection = useCallback(async () => {
-    try {
-      const availableModels = await fetchModels();
-      setModels(availableModels);
-      setIsConnected(true);
-      if (availableModels.length > 0 && (!selectedModel || selectedModel === 'mock-model')) {
-        setSelectedModel(availableModels[0]);
+
+  const startTimeRef = useRef<number>(0);
+  const tokenCountRef = useRef<number>(0);
+  const lastTokenTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!worker) return;
+    
+    // Initialize the WebGPU/WASM pipeline immediately
+    worker.postMessage({ action: 'load' });
+
+    worker.onmessage = (event) => {
+      const msg = event.data;
+      
+      if (msg.status === 'progress') {
+        setLoadingProgress({ file: msg.file, progress: msg.progress });
+      } 
+      else if (msg.status === 'ready') {
+        setIsEngineReady(true);
+        setLoadingProgress(null);
       }
-    } catch (e) {
-      setIsConnected(false);
-      setModels([]);
-    }
-  }, [selectedModel]);
-
-  const startGeneration = useCallback(async () => {
-    if (!selectedModel) return;
-    
-    // reset state
-    setSteps([]);
-    setEvents([]);
-    setMetrics({
-      timeToFirstToken: null,
-      totalTime: null,
-      generatedTokens: 0,
-      promptTokens: null,
-      tokensPerSecond: null,
-      averageLatency: null,
-      currentLatency: null
-    });
-    setIsGenerating(true);
-
-    const controller = new GenerationController();
-    controllerRef.current = controller;
-    
-    let startTime = performance.now();
-    let firstTokenTime: number | null = null;
-    let lastTokenTime = startTime;
-    let tokenCount = 0;
-    
-    controller.start({
-      model: selectedModel,
-      prompt
-    }, {
-      onStart: () => {
-        startTime = performance.now();
-        lastTokenTime = startTime;
-      },
-      onChunk: (text, logprobData) => {
+      else if (msg.status === 'init_context') {
+        // Pre-fill context array with real token IDs!
+        // We will transform them into pseudo-steps just for the context array visualization
+        const contextSteps = msg.tokens.map((t: any, i: number) => ({
+          index: -msg.tokens.length + i, // negative index so they appear before generation
+          tokenText: t.text,
+          probability: 1,
+          logProbability: 0,
+          rank: 1,
+          alternatives: [],
+          timestamp: performance.now(),
+          deltaLatency: 0,
+          cumulativeLatency: 0,
+          isWhitespace: /^\s+$/.test(t.text)
+        }));
+        setSteps(contextSteps);
+        setMetrics(m => ({ ...m, promptTokens: msg.tokens.length }));
+      }
+      else if (msg.status === 'chunk') {
         const now = performance.now();
-        if (firstTokenTime === null) {
-          firstTokenTime = now;
-          setMetrics(m => ({ ...m, timeToFirstToken: now - startTime }));
-        }
-        
-        const deltaLatency = now - lastTokenTime;
-        const cumulativeLatency = now - startTime;
-        lastTokenTime = now;
-        
-        tokenCount++;
-        
-        const probability = logprobData ? Math.exp(logprobData.logprob) : 0;
-        
-        const alternatives = logprobData?.top_logprobs.map(alt => ({
-          token: alt.token,
-          probability: Math.exp(alt.logprob),
-          logProbability: alt.logprob
-        })) || [];
-        
-        // Find rank of selected token
-        let rank = 1;
-        if (logprobData) {
-          const sorted = [...alternatives].sort((a, b) => b.probability - a.probability);
-          const foundIndex = sorted.findIndex(a => a.token === logprobData.token);
-          if (foundIndex >= 0) {
-            rank = foundIndex + 1;
-          }
-        }
-        
+        const deltaLatency = now - lastTokenTimeRef.current;
+        const cumulativeLatency = now - startTimeRef.current;
+        lastTokenTimeRef.current = now;
+        tokenCountRef.current++;
+
         const newStep: GenerationStep = {
-          index: tokenCount,
-          tokenText: logprobData?.token || text, // Prefer token text from logprobs as it represents exactly what was selected
-          probability,
-          logProbability: logprobData?.logprob || 0,
-          rank,
-          alternatives,
+          index: tokenCountRef.current,
+          tokenText: msg.token_text,
+          probability: 1, // Transformers.js callback doesn't natively expose logits easily without custom loop, so we mock 1.0 for now, but we have the TRUE Token ID!
+          logProbability: 0,
+          rank: 1,
+          alternatives: [
+            { token: msg.token_text, probability: 1, logProbability: 0 },
+            { token: `ID: ${msg.token_id}`, probability: 0, logProbability: -1 } // Expose true token ID as an alternative for visualization!
+          ],
           timestamp: now,
           deltaLatency,
           cumulativeLatency,
-          isWhitespace: /^\s+$/.test(logprobData?.token || text)
+          isWhitespace: /^\s+$/.test(msg.token_text)
         };
         
         setSteps(prev => [...prev, newStep]);
         setMetrics(m => ({
           ...m,
-          generatedTokens: tokenCount,
+          generatedTokens: tokenCountRef.current,
           currentLatency: deltaLatency,
-          averageLatency: cumulativeLatency / tokenCount,
-          tokensPerSecond: tokenCount / (cumulativeLatency / 1000)
+          averageLatency: cumulativeLatency / tokenCountRef.current,
+          tokensPerSecond: tokenCountRef.current / (cumulativeLatency / 1000)
         }));
-      },
-      onUsage: (usage) => {
-        setMetrics(m => ({
-          ...m,
-          promptTokens: usage.prompt_tokens,
-          generatedTokens: usage.completion_tokens || m.generatedTokens
-        }));
-      },
-      onEvent: (type, data) => {
-        setEvents(prev => [...prev.slice(-99), {
-          id: Math.random().toString(36).slice(2),
-          type,
-          data,
-          timestamp: Date.now()
-        }]);
-      },
-      onComplete: () => {
-        setIsGenerating(false);
-        const totalTime = performance.now() - startTime;
-        setMetrics(m => ({ ...m, totalTime }));
-      },
-      onError: (err) => {
-        setIsGenerating(false);
-        setEvents(prev => [...prev, {
-          id: Math.random().toString(36).slice(2),
-          type: 'error',
-          data: err.toString(),
-          timestamp: Date.now()
-        }]);
       }
+      else if (msg.status === 'complete') {
+        setIsGenerating(false);
+        setMetrics(m => ({ ...m, totalTime: performance.now() - startTimeRef.current }));
+      }
+    };
+  }, []);
+
+  const startGeneration = useCallback(() => {
+    if (!isEngineReady || !worker) return;
+    
+    setSteps([]);
+    setMetrics({
+      timeToFirstToken: null, totalTime: null, generatedTokens: 0,
+      promptTokens: null, tokensPerSecond: null, averageLatency: null, currentLatency: null
     });
-  }, [selectedModel, prompt]);
+    setIsGenerating(true);
+
+    startTimeRef.current = performance.now();
+    lastTokenTimeRef.current = startTimeRef.current;
+    tokenCountRef.current = 0;
+    
+    worker.postMessage({
+      action: 'generate',
+      text: prompt,
+      max_new_tokens: 30
+    });
+  }, [isEngineReady, prompt]);
   
   const stopGeneration = useCallback(() => {
-    if (controllerRef.current) {
-      controllerRef.current.stop();
-      controllerRef.current = null;
-    }
     setIsGenerating(false);
   }, []);
 
+  // For compatibility with App.tsx
+  const checkConnection = useCallback(() => {}, []);
+  const setSelectedModel = useCallback(() => {}, []);
+  const isConnected = isEngineReady;
+  const selectedModel = 'Xenova/SmolLM-135M';
+
   return {
-    models,
+    models: [selectedModel],
     selectedModel,
     setSelectedModel,
     isConnected,
@@ -178,6 +139,8 @@ export function useMicroscope() {
     stopGeneration,
     steps,
     metrics,
-    events
+    events: [],
+    loadingProgress,
+    isEngineReady
   };
 }
