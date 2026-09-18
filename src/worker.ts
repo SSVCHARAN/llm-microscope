@@ -4,7 +4,7 @@ env.allowLocalModels = false;
 
 let tokenizer: any = null;
 let model: any = null;
-const modelId = 'Xenova/Qwen1.5-0.5B-Chat';
+const modelId = 'Xenova/gpt2';
 
 self.addEventListener('message', async (event) => {
     const { action, text, max_new_tokens = 30 } = event.data;
@@ -32,7 +32,7 @@ self.addEventListener('message', async (event) => {
         if (!tokenizer || !model) return;
         
         try {
-            const prompt = `<|im_start|>user\n${text}<|im_end|>\n<|im_start|>assistant\n`;
+            const prompt = text;
             const inputs = tokenizer(prompt);
             
             const initialTokens = Array.from(inputs.input_ids.data);

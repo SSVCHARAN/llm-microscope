@@ -7,7 +7,7 @@ if (typeof window !== 'undefined') {
 }
 
 export function useMicroscope() {
-  const [prompt, setPrompt] = useState('Why is the sky blue? Answer in one sentence.');
+  const [prompt, setPrompt] = useState('The quick brown fox');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState<{file: string, progress: number} | null>(null);
@@ -128,7 +128,7 @@ export function useMicroscope() {
   const checkConnection = useCallback(() => {}, []);
   const setSelectedModel = useCallback(() => {}, []);
   const isConnected = isEngineReady;
-  const selectedModel = 'Xenova/Qwen1.5-0.5B-Chat';
+  const selectedModel = 'Xenova/gpt2';
 
   return {
     models: [selectedModel],

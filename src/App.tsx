@@ -183,7 +183,7 @@ export function App() {
           <div className="h-12 border-b border-white/[0.06] flex items-center justify-between px-5 bg-white/[0.01]">
             <div className="flex items-center gap-3 text-[11px] font-mono tracking-tight text-[#888]">
               <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/20'}`} />
-              QWEN_0.5B_WEB_PIPELINE
+              GPT2_124M_PIPELINE
             </div>
           </div>
 
