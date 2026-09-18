@@ -11,6 +11,7 @@ export function useMicroscope() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState<{file: string, progress: number} | null>(null);
+  const [engineError, setEngineError] = useState<string | null>(null);
   
   const [steps, setSteps] = useState<GenerationStep[]>([]);
   const [metrics, setMetrics] = useState<GenerationMetrics>({
@@ -25,7 +26,6 @@ export function useMicroscope() {
   useEffect(() => {
     if (!worker) return;
     
-    // Initialize the WebGPU/WASM pipeline immediately
     worker.postMessage({ action: 'load' });
 
     worker.onmessage = (event) => {
@@ -37,12 +37,16 @@ export function useMicroscope() {
       else if (msg.status === 'ready') {
         setIsEngineReady(true);
         setLoadingProgress(null);
+        setEngineError(null);
+      }
+      else if (msg.status === 'error') {
+        setEngineError(msg.error);
+        setLoadingProgress(null);
+        setIsGenerating(false);
       }
       else if (msg.status === 'init_context') {
-        // Pre-fill context array with real token IDs!
-        // We will transform them into pseudo-steps just for the context array visualization
         const contextSteps = msg.tokens.map((t: any, i: number) => ({
-          index: -msg.tokens.length + i, // negative index so they appear before generation
+          index: -msg.tokens.length + i, 
           tokenText: t.text,
           probability: 1,
           logProbability: 0,
@@ -66,12 +70,12 @@ export function useMicroscope() {
         const newStep: GenerationStep = {
           index: tokenCountRef.current,
           tokenText: msg.token_text,
-          probability: 1, // Transformers.js callback doesn't natively expose logits easily without custom loop, so we mock 1.0 for now, but we have the TRUE Token ID!
+          probability: 1, 
           logProbability: 0,
           rank: 1,
           alternatives: [
             { token: msg.token_text, probability: 1, logProbability: 0 },
-            { token: `ID: ${msg.token_id}`, probability: 0, logProbability: -1 } // Expose true token ID as an alternative for visualization!
+            { token: `ID: ${msg.token_id}`, probability: 0, logProbability: -1 } 
           ],
           timestamp: now,
           deltaLatency,
@@ -99,6 +103,7 @@ export function useMicroscope() {
     if (!isEngineReady || !worker) return;
     
     setSteps([]);
+    setEngineError(null);
     setMetrics({
       timeToFirstToken: null, totalTime: null, generatedTokens: 0,
       promptTokens: null, tokensPerSecond: null, averageLatency: null, currentLatency: null
@@ -120,11 +125,10 @@ export function useMicroscope() {
     setIsGenerating(false);
   }, []);
 
-  // For compatibility with App.tsx
   const checkConnection = useCallback(() => {}, []);
   const setSelectedModel = useCallback(() => {}, []);
   const isConnected = isEngineReady;
-  const selectedModel = 'Xenova/SmolLM-135M';
+  const selectedModel = 'Xenova/Qwen1.5-0.5B-Chat';
 
   return {
     models: [selectedModel],
@@ -141,6 +145,7 @@ export function useMicroscope() {
     metrics,
     events: [],
     loadingProgress,
-    isEngineReady
+    isEngineReady,
+    engineError
   };
 }

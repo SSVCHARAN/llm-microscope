@@ -135,6 +135,11 @@ export function App() {
 
       <main className="w-full max-w-7xl flex-1 flex flex-col p-6 gap-6 relative z-10">
         
+        {engineError && (
+          <div className="w-full bg-red-500/10 border border-red-500/20 rounded-md p-3 flex flex-col gap-2 text-[12px] font-mono text-red-400">
+             <strong>Engine Error:</strong> {engineError}
+          </div>
+        )}
         {loadingProgress && (
           <div className="w-full bg-orange-500/10 border border-orange-500/20 rounded-md p-3 flex flex-col gap-2">
              <div className="flex justify-between text-[11px] font-mono text-orange-400">
@@ -178,7 +183,7 @@ export function App() {
           <div className="h-12 border-b border-white/[0.06] flex items-center justify-between px-5 bg-white/[0.01]">
             <div className="flex items-center gap-3 text-[11px] font-mono tracking-tight text-[#888]">
               <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/20'}`} />
-              SMOLLM_135M_INSTRUCT_PIPELINE
+              QWEN_0.5B_WEB_PIPELINE
             </div>
           </div>
 

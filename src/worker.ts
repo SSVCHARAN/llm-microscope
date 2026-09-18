@@ -4,10 +4,10 @@ env.allowLocalModels = false;
 
 let tokenizer: any = null;
 let model: any = null;
-const modelId = 'Xenova/SmolLM-135M-Instruct';
+const modelId = 'Xenova/Qwen1.5-0.5B-Chat';
 
 self.addEventListener('message', async (event) => {
-    const { action, text, max_new_tokens = 20 } = event.data;
+    const { action, text, max_new_tokens = 30 } = event.data;
 
     if (action === 'load') {
         try {
@@ -18,7 +18,7 @@ self.addEventListener('message', async (event) => {
             }
             if (!model) {
                 model = await AutoModelForCausalLM.from_pretrained(modelId, {
-                    dtype: 'q4',
+                    dtype: 'q4', // Quantized for web
                     progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'model', ...x })
                 });
             }
@@ -35,7 +35,6 @@ self.addEventListener('message', async (event) => {
             const prompt = `<|im_start|>user\n${text}<|im_end|>\n<|im_start|>assistant\n`;
             const inputs = tokenizer(prompt);
             
-            // Initial token IDs (the context)
             const initialTokens = Array.from(inputs.input_ids.data);
             const initialDecoded = initialTokens.map((id: any) => tokenizer.decode([id]));
             
@@ -44,8 +43,6 @@ self.addEventListener('message', async (event) => {
                 tokens: initialTokens.map((id: any, i: number) => ({ id, text: initialDecoded[i] }))
             });
 
-            // Generation loop using manual forward passes to get authentic logits (which is hard to do without a custom loop, but we can use the generator callback)
-            // Wait, we can use model.generate with a callback
             let tokenCount = 0;
             const output = await model.generate({
                 ...inputs,
