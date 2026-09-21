@@ -37,3 +37,95 @@ export interface ApiEvent {
   data: any;
   timestamp: number;
 }
+
+// -------------------------------------------------------------
+// Transformer Educational Pipeline Types
+// -------------------------------------------------------------
+
+export type PipelineStageId =
+  | 'tokenization'
+  | 'embedding'
+  | 'attention_qkv'
+  | 'attention_heatmap'
+  | 'feed_forward'
+  | 'softmax'
+  | 'sampling';
+
+export interface StageDefinition {
+  id: PipelineStageId;
+  stepNumber: number;
+  title: string;
+  tagline: string;
+  summary: string;
+  howItWorks: string[];
+  keyInsight: string;
+}
+
+export interface TokenItem {
+  id: number;
+  text: string;
+  display: string;
+  color: string;
+  index: number;
+}
+
+export interface EmbeddingVector {
+  tokenId: number;
+  tokenText: string;
+  position: number;
+  tokenVector: number[];
+  posVector: number[];
+  combinedVector: number[];
+}
+
+export interface QKVData {
+  tokenId: number;
+  tokenText: string;
+  q: number[];
+  k: number[];
+  v: number[];
+}
+
+export interface AttentionHeadData {
+  headIndex: number;
+  name: string;
+  description: string;
+  matrix: number[][]; // N x N attention weights (0.0 to 1.0)
+  rawScores: number[][]; // Q * K^T / sqrt(d)
+}
+
+export interface FFNLayerNode {
+  id: string;
+  label: string;
+  layer: number;
+  value: number;
+  postRelu: number;
+}
+
+export interface CandidateLogit {
+  rank: number;
+  token: string;
+  display: string;
+  logit: number;
+  probability: number;
+  logprob: number;
+  isWinner?: boolean;
+}
+
+export interface MockPipelineData {
+  prompt: string;
+  outputToken: string;
+  resultingText: string;
+  tokens: TokenItem[];
+  embeddings: EmbeddingVector[];
+  qkv: QKVData[];
+  attentionHeads: AttentionHeadData[];
+  ffnNodes: FFNLayerNode[];
+  ffnConnections: { from: string; to: string; weight: number }[];
+  logits: CandidateLogit[];
+  samplingParams: {
+    temperature: number;
+    topK: number;
+    topP: number;
+  };
+}

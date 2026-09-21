@@ -73,7 +73,7 @@ export function useMicroscope() {
           probability: 1, 
           logProbability: 0,
           rank: 1,
-          alternatives: [
+          alternatives: msg.alternatives || [
             { token: msg.token_text, probability: 1, logProbability: 0 },
             { token: `ID: ${msg.token_id}`, probability: 0, logProbability: -1 } 
           ],
@@ -128,7 +128,7 @@ export function useMicroscope() {
   const checkConnection = useCallback(() => {}, []);
   const setSelectedModel = useCallback(() => {}, []);
   const isConnected = isEngineReady;
-  const selectedModel = 'Xenova/gpt2';
+  const selectedModel = 'Xenova/LaMini-GPT-124M';
 
   return {
     models: [selectedModel],
