@@ -259,26 +259,184 @@ export const MOCK_DATA: MockPipelineData = {
       ]
     }
   ],
+  attentionOutput: {
+    tokenText: ' the',
+    position: 4,
+    originalVector: [0.28, -0.40, 0.75, -1.19],
+    attentionContextVector: [0.44, -0.05, 0.39, 0.31],
+    combinedInputVector: [0.72, -0.45, 1.14, -0.88],
+    breakdown: [
+      { sourceToken: ' cat', weight: 0.54, contribution: [0.39, -0.30, 0.33, 0.10] },
+      { sourceToken: ' sat', weight: 0.24, contribution: [-0.04, 0.20, 0.11, 0.08] },
+      { sourceToken: ' on', weight: 0.12, contribution: [0.03, 0.01, -0.05, 0.06] },
+      { sourceToken: ' the', weight: 0.08, contribution: [0.04, 0.02, -0.01, 0.06] },
+      { sourceToken: 'The', weight: 0.02, contribution: [0.01, 0.01, -0.00, 0.02] }
+    ]
+  },
   ffnNodes: [
-    // Input layer (4 nodes)
-    { id: 'in_0', label: 'x₁', layer: 0, value: 0.72, postRelu: 0.72 },
-    { id: 'in_1', label: 'x₂', layer: 0, value: -0.45, postRelu: -0.45 },
-    { id: 'in_2', label: 'x₃', layer: 0, value: 1.14, postRelu: 1.14 },
-    { id: 'in_3', label: 'x₄', layer: 0, value: -0.88, postRelu: -0.88 },
+    // Input layer (4 nodes) - exactly matches combinedInputVector from Stage 4!
+    {
+      id: 'in_0',
+      label: 'x₁',
+      layer: 0,
+      value: 0.72,
+      postRelu: 0.72,
+      name: 'Input Coordinate 1 (from Attention)',
+      role: 'Token Vector Dimension 1',
+      stageContext: 'Result of: Original Embedding (+0.28) + Attention Context (+0.44) from "cat" & "The". It carries noun-subject context directly into the FFN.'
+    },
+    {
+      id: 'in_1',
+      label: 'x₂',
+      layer: 0,
+      value: -0.45,
+      postRelu: -0.45,
+      name: 'Input Coordinate 2 (from Attention)',
+      role: 'Token Vector Dimension 2',
+      stageContext: 'Result of: Original Embedding (-0.40) + Attention Context (-0.05). Carries grammatical tense and polarity from the verb "sat".'
+    },
+    {
+      id: 'in_2',
+      label: 'x₃',
+      layer: 0,
+      value: 1.14,
+      postRelu: 1.14,
+      name: 'Input Coordinate 3 (from Attention)',
+      role: 'Token Vector Dimension 3',
+      stageContext: 'Result of: Original Embedding (+0.75) + Attention Context (+0.39) retrieved from preposition "on". Encodes spatial relationship.'
+    },
+    {
+      id: 'in_3',
+      label: 'x₄',
+      layer: 0,
+      value: -0.88,
+      postRelu: -0.88,
+      name: 'Input Coordinate 4 (from Attention)',
+      role: 'Token Vector Dimension 4',
+      stageContext: 'Result of: Original Embedding (-1.19) + Attention Context (+0.31). Signals that a determiner ("the") requires an impending noun.'
+    },
     // Hidden layer (8 expanded nodes, post-ReLU / GELU)
-    { id: 'h_0', label: 'h₁', layer: 1, value: 1.85, postRelu: 1.85 },
-    { id: 'h_1', label: 'h₂', layer: 1, value: -0.92, postRelu: 0.00 },
-    { id: 'h_2', label: 'h₃', layer: 1, value: 2.41, postRelu: 2.41 },
-    { id: 'h_3', label: 'h₄', layer: 1, value: -1.33, postRelu: 0.00 },
-    { id: 'h_4', label: 'h₅', layer: 1, value: 0.65, postRelu: 0.65 },
-    { id: 'h_5', label: 'h₆', layer: 1, value: 3.12, postRelu: 3.12 },
-    { id: 'h_6', label: 'h₇', layer: 1, value: -0.41, postRelu: 0.00 },
-    { id: 'h_7', label: 'h₈', layer: 1, value: 1.28, postRelu: 1.28 },
-    // Output layer (4 nodes)
-    { id: 'out_0', label: 'y₁', layer: 2, value: 1.44, postRelu: 1.44 },
-    { id: 'out_1', label: 'y₂', layer: 2, value: 0.89, postRelu: 0.89 },
-    { id: 'out_2', label: 'y₃', layer: 2, value: -0.12, postRelu: -0.12 },
-    { id: 'out_3', label: 'y₄', layer: 2, value: 2.05, postRelu: 2.05 }
+    {
+      id: 'h_0',
+      label: 'h₁',
+      layer: 1,
+      value: 1.85,
+      postRelu: 1.85,
+      name: 'Surface Pattern Detector',
+      role: 'Hidden Layer 1 Feature',
+      stageContext: 'Pre-activation = +1.85. The 4× expansion lets this neuron detect physical flat-surface patterns. Transmits forward to output.'
+    },
+    {
+      id: 'h_1',
+      label: 'h₂',
+      layer: 1,
+      value: -0.92,
+      postRelu: 0.00,
+      name: 'GELU-Silenced Noise Neuron',
+      role: 'Irrelevant Feature Filter',
+      stageContext: 'Pre-activation was negative (-0.92). Non-linear GELU activation silenced this neuron to 0.00 to block irrelevant noise.'
+    },
+    {
+      id: 'h_2',
+      label: 'h₃',
+      layer: 1,
+      value: 2.41,
+      postRelu: 2.41,
+      name: 'Feline Domestic Context',
+      role: 'Factual Association Store',
+      stageContext: 'Fired strongly (+2.41)! Stored weights associate "cat sat" with domestic home locations like mats, rugs, and floors.'
+    },
+    {
+      id: 'h_3',
+      label: 'h₄',
+      layer: 1,
+      value: -1.33,
+      postRelu: 0.00,
+      name: 'Airborne/Outdoor Motion',
+      role: 'GELU Cutoff',
+      stageContext: 'Silenced to 0.00. The sentence does not describe outdoor flight, so this feature is zeroed out.'
+    },
+    {
+      id: 'h_4',
+      label: 'h₅',
+      layer: 1,
+      value: 0.65,
+      postRelu: 0.65,
+      name: 'Indoor Setting Feature',
+      role: 'Contextual Feature',
+      stageContext: 'Pre-activation = +0.65. Confirms an indoor domestic setting and passes activation to output nodes.'
+    },
+    {
+      id: 'h_5',
+      label: 'h₆',
+      layer: 1,
+      value: 3.12,
+      postRelu: 3.12,
+      name: 'Resting Surface Target',
+      role: 'Key Factual Feature',
+      stageContext: 'Fired at maximum intensity (+3.12)! Sits downstream of "on the", detecting that the next word must be a resting surface!'
+    },
+    {
+      id: 'h_6',
+      label: 'h₇',
+      layer: 1,
+      value: -0.41,
+      postRelu: 0.00,
+      name: 'Abstract Concept Detector',
+      role: 'GELU Cutoff',
+      stageContext: 'Pre-activation was -0.41. Silenced to 0.00 because the sentence requires a concrete physical object, not an idea.'
+    },
+    {
+      id: 'h_7',
+      label: 'h₈',
+      layer: 1,
+      value: 1.28,
+      postRelu: 1.28,
+      name: 'Singular Noun Expectation',
+      role: 'Syntactic Requirement',
+      stageContext: 'Fired (+1.28). Enforces grammar rules: following "on the", the upcoming word must be a singular countable noun.'
+    },
+    // Output layer (4 nodes) - feeds into Stage 6 Softmax!
+    {
+      id: 'out_0',
+      label: 'y₁',
+      layer: 2,
+      value: 1.44,
+      postRelu: 1.44,
+      name: 'Output Dimension 1',
+      role: 'FFN Reasoning Output',
+      stageContext: 'Output coordinate 1. In Stage 6, it projects through the Unembedding matrix to boost words like "mat" and "floor".'
+    },
+    {
+      id: 'out_1',
+      label: 'y₂',
+      layer: 2,
+      value: 0.89,
+      postRelu: 0.89,
+      name: 'Output Dimension 2',
+      role: 'FFN Reasoning Output',
+      stageContext: 'Output coordinate 2. Strengthens domestic surface vocabulary logits.'
+    },
+    {
+      id: 'out_2',
+      label: 'y₃',
+      layer: 2,
+      value: -0.12,
+      postRelu: -0.12,
+      name: 'Output Dimension 3',
+      role: 'FFN Reasoning Output',
+      stageContext: 'Output coordinate 3. Penalizes verbs, adjectives, and incompatible nouns.'
+    },
+    {
+      id: 'out_3',
+      label: 'y₄',
+      layer: 2,
+      value: 2.05,
+      postRelu: 2.05,
+      name: 'Output Dimension 4',
+      role: 'FFN Reasoning Output',
+      stageContext: 'Output coordinate 4. Added back to the token vector via Residual Connection and sent directly into Stage 6 (Softmax)!'
+    }
   ],
   ffnConnections: [
     { from: 'in_0', to: 'h_0', weight: 0.85 },

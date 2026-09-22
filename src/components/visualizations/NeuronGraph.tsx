@@ -147,27 +147,38 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
       </div>
 
       {/* Interactive Inspector */}
-      <div className="w-full lg:w-72 bg-[#111111] border border-white/[0.08] rounded-xl p-5 flex flex-col gap-3 shadow-xl">
+      <div className="w-full lg:w-80 bg-[#111111] border border-white/[0.08] rounded-xl p-5 flex flex-col gap-3 shadow-xl">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold">
-            Neuron Telemetry
+            Neuron Telemetry & Context
           </span>
           <span className="text-[9px] font-mono text-[#888]">Click node to inspect</span>
         </div>
 
         {selectedNode ? (
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between items-center p-2 rounded bg-black/40 border border-white/[0.06]">
-              <span className="text-[11px] font-mono text-[#A0A0A0]">Identifier:</span>
-              <span className="text-[13px] font-mono font-bold text-white">
-                {selectedNode.label} (Layer {selectedNode.layer})
-              </span>
+            {/* Node ID & Human readable name */}
+            <div className="flex flex-col p-2.5 rounded bg-black/50 border border-white/[0.06] gap-0.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-mono text-[#A0A0A0] uppercase">Node Symbol:</span>
+                <span className="text-[13px] font-mono font-bold text-white">
+                  {selectedNode.label} ({selectedNode.layer === 0 ? 'Input Layer' : selectedNode.layer === 1 ? 'Hidden Layer 1' : 'Output Layer 2'})
+                </span>
+              </div>
+              {selectedNode.name && (
+                <span className="text-[11px] font-medium text-emerald-300">
+                  {selectedNode.name}
+                </span>
+              )}
             </div>
 
+            {/* Values */}
             <div className="flex justify-between items-center p-2 rounded bg-white/[0.03] border border-white/[0.05]">
-              <span className="text-[11px] font-mono text-[#A0A0A0]">Pre-Activation:</span>
+              <span className="text-[11px] font-mono text-[#A0A0A0]">
+                {selectedNode.layer === 0 ? 'Coordinate Value:' : 'Pre-Activation:'}
+              </span>
               <span className={`text-[12px] font-mono font-semibold ${selectedNode.value < 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
-                {selectedNode.value.toFixed(2)}
+                {selectedNode.value >= 0 ? `+${selectedNode.value.toFixed(2)}` : selectedNode.value.toFixed(2)}
               </span>
             </div>
 
@@ -180,20 +191,20 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
               </div>
             )}
 
-            <div className="text-[11px] leading-relaxed text-[#A0A0A0] mt-1">
-              {selectedNode.layer === 1 && selectedNode.postRelu === 0 ? (
-                <span className="text-amber-300">
-                  ⚠️ <strong>Threshold Cutoff:</strong> Pre-activation was negative ({selectedNode.value.toFixed(2)}). The non-linear activation silenced this neuron to 0, preventing negative noise from propagating!
-                </span>
-              ) : selectedNode.layer === 1 ? (
-                <span className="text-emerald-300">
-                  ⚡ <strong>Feature Fired:</strong> Pre-activation was positive ({selectedNode.value.toFixed(2)}). This neuron detected an active syntactic pattern and amplified it into the output projection.
-                </span>
-              ) : (
-                <span>
-                  Linear transformation node carrying continuous geometric values.
-                </span>
-              )}
+            {/* Stage Context Callout */}
+            <div className="p-3 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 flex flex-col gap-1 mt-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+                Context in the Pipeline:
+              </span>
+              <p className="text-[12px] leading-relaxed text-[#EDEDED]">
+                {selectedNode.stageContext || (
+                  selectedNode.layer === 0
+                    ? `Input dimension coordinate entering the FFN for token " the".`
+                    : selectedNode.layer === 1
+                    ? `Hidden knowledge feature in the 4× expanded MLP.`
+                    : `Output reasoning dimension projected toward Stage 6 word logits.`
+                )}
+              </p>
             </div>
           </div>
         ) : (

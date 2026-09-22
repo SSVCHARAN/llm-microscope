@@ -100,6 +100,22 @@ export interface FFNLayerNode {
   layer: number;
   value: number;
   postRelu: number;
+  name?: string;
+  role?: string;
+  stageContext?: string;
+}
+
+export interface AttentionOutputData {
+  tokenText: string;
+  position: number;
+  originalVector: number[];
+  attentionContextVector: number[];
+  combinedInputVector: number[];
+  breakdown: {
+    sourceToken: string;
+    weight: number;
+    contribution: number[];
+  }[];
 }
 
 export interface CandidateLogit {
@@ -127,6 +143,7 @@ export interface MockPipelineData {
   qkv: QKVData[];
   qkvWeights: QKVProjectionWeights;
   attentionHeads: AttentionHeadData[];
+  attentionOutput: AttentionOutputData;
   ffnNodes: FFNLayerNode[];
   ffnConnections: { from: string; to: string; weight: number }[];
   logits: CandidateLogit[];

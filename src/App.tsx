@@ -71,6 +71,7 @@ export function App() {
           <AttentionHeatmapStage
             tokens={mockData.tokens}
             heads={mockData.attentionHeads}
+            attentionOutput={mockData.attentionOutput}
           />
         );
       case 'feed_forward':
@@ -78,6 +79,7 @@ export function App() {
           <FeedForwardStage
             nodes={mockData.ffnNodes}
             connections={mockData.ffnConnections}
+            attentionOutput={mockData.attentionOutput}
           />
         );
       case 'softmax':
