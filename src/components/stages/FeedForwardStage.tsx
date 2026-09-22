@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, GitFork, Zap, Plus, Equal, ArrowDown, Network } from 'lucide-react';
+import { Cpu, GitFork, Zap, Plus, Equal, ArrowDown, Network, HelpCircle, Sparkles, BookOpen } from 'lucide-react';
 import { FFNLayerNode, AttentionOutputData } from '../../types';
 import { NeuronGraph } from '../visualizations/NeuronGraph';
 import { VectorBar } from '../visualizations/VectorBar';
@@ -16,62 +16,84 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
   attentionOutput
 }) => {
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* 3-Step Flow Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 text-white font-mono text-[12px] font-semibold">
-            <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px]">1</span>
-            <span>4× Dimensional Expansion</span>
-          </div>
-          <p className="text-[12px] text-[#A0A0A0] leading-relaxed">
-            The input vector (768 dimensions) is projected outward to <strong>3072 dimensions</strong>. This gives the model enormous representational capacity to store factual knowledge.
-          </p>
+    <div className="flex flex-col gap-8 w-full">
+      {/* 1. Jargon Buster: Clear definitions for MLP, GELU, Proj, D */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-black/60 p-5 shadow-xl">
+        <div className="flex items-center gap-2 pb-2 border-b border-white/[0.06]">
+          <BookOpen className="w-4 h-4 text-emerald-400" />
+          <span className="text-[12px] font-mono uppercase tracking-wider text-white font-bold">
+            Jargon Buster: Key Concepts Decoded
+          </span>
+          <span className="text-[10px] font-mono text-[#888] hidden sm:inline">
+            (Read this first to understand the terms used below)
+          </span>
         </div>
 
-        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 text-emerald-400 font-mono text-[12px] font-semibold">
-            <Zap className="w-4 h-4" />
-            <span>Non-Linear Activation (GELU)</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Concept 1: d (Dimension) */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <span className="text-[11px] font-mono font-bold text-amber-400">
+              d (Vector Dimension)
+            </span>
+            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+              The number of coordinate numbers defining a token. In real GPT-2, <code className="text-white">d = 768</code>. For visual clarity in this microscope, we track <code className="text-white">d = 4</code> coordinates.
+            </p>
           </div>
-          <p className="text-[12px] text-emerald-200/90 leading-relaxed">
-            Without non-linear activations, stacking 100 neural layers would collapse into a single giant linear equation! GELU silences negative values and lets features fire conditionally.
-          </p>
-        </div>
 
-        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 text-white font-mono text-[12px] font-semibold">
-            <GitFork className="w-4 h-4" />
-            <span>Residual Skip Connection</span>
+          {/* Concept 2: MLP (Multi-Layer Perceptron) */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <span className="text-[11px] font-mono font-bold text-emerald-400">
+              MLP (Feed-Forward Net)
+            </span>
+            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+              A standard neural network with layers of connected neurons. While Attention <em>routes context between tokens</em>, the MLP <em>processes and reasons upon that context</em>.
+            </p>
           </div>
-          <p className="text-[12px] text-[#A0A0A0] leading-relaxed">
-            Formula: <code className="text-white">x_out = x_in + FFN(x_in)</code>. The original vector bypasses the MLP through a highway, ensuring original context is never erased.
-          </p>
+
+          {/* Concept 3: Proj (Projection) */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <span className="text-[11px] font-mono font-bold text-cyan-400">
+              Proj (Projection)
+            </span>
+            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+              Multiplying a vector by a matrix to change its shape. Here, the vector expands 4× from 4 to 8 dimensions, then projects back down to 4 dimensions.
+            </p>
+          </div>
+
+          {/* Concept 4: GELU Gate */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <span className="text-[11px] font-mono font-bold text-rose-400">
+              GELU (Activation Gate)
+            </span>
+            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+              A non-linear switch function. Acts like a bouncer: positive signals pass through; negative noise is silenced to <code className="text-white">0.00</code>.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* The Context Bridge: How Stage 4 Feeds Directly Into Stage 5 */}
-      <div className="flex flex-col gap-4 rounded-xl border border-emerald-500/30 bg-black/60 p-6 shadow-2xl">
+      {/* 2. Context Bridge: How Stage 4 connects to Stage 5 without premature x1..x4 */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-emerald-500/30 bg-black/70 p-6 shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-emerald-400" />
             <span className="text-[13px] font-mono uppercase tracking-wider text-white font-bold">
-              Context Bridge: Where do nodes x₁ ... x₄ come from?
+              Where does the input to Stage 5 come from?
             </span>
           </div>
           <span className="text-[11px] font-mono text-emerald-400">
-            Formulation: x_FFN = x_orig + z_attn
+            Formula: x_in = (Token Embedding) + (Stage 4 Attention Context)
           </span>
         </div>
 
         <p className="text-[12px] leading-relaxed text-[#C0C0C0]">
-          In a Transformer, the Feed-Forward Network runs on <strong>each token individually</strong>. For generating the next token, we focus on the last position (token <code className="text-white">"{attentionOutput.tokenText}"</code>). Its input vector to the FFN is created by taking its original embedding and adding the <strong>Attention Context Vector (z)</strong> gathered in Stage 4:
+          The Feed-Forward Network runs on <strong>each token individually</strong>. Because our goal is to predict the word that follows <code className="text-white">"The cat sat on the"</code>, we are processing the <strong>terminal token "{attentionOutput.tokenText}"</strong>. In Stage 4, this token gathered context from previous words ("cat" and "sat"). Now, we add that context vector to the token's original embedding:
         </p>
 
         {/* 1. Original Token Vector */}
         <VectorBar
           label={`1. Original Token Vector ("${attentionOutput.tokenText}")`}
-          sublabel="Embedding vector before attention was applied"
+          sublabel="Embedding coordinates before attention was applied"
           vector={attentionOutput.originalVector}
           colorTheme="amber"
           maxVisibleDims={4}
@@ -88,7 +110,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
         {/* 2. Attention Context Vector (z from Stage 4) */}
         <VectorBar
           label="2. Attention Context Vector (z from Stage 4)"
-          sublabel="Weighted information retrieved from 'cat' (54%) and 'sat' (24%)"
+          sublabel="Weighted context gathered from 'cat' (54%) and 'sat' (24%) in the Stage 4 heatmap"
           vector={attentionOutput.attentionContextVector}
           colorTheme="cyan"
           maxVisibleDims={4}
@@ -104,25 +126,73 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
 
         {/* 3. Combined Vector entering FFN */}
         <VectorBar
-          label="3. FFN Input Vector (x₁ ... x₄)"
-          sublabel="Enriched vector carrying both token identity and full sentence context"
+          label='3. Enriched Token Vector for " the"'
+          sublabel="Carries both the word identity and the full sentence context"
           vector={attentionOutput.combinedInputVector}
           colorTheme="emerald"
           maxVisibleDims={4}
           dimensionLabel="[4-D]"
         />
 
-        {/* Direct Link pointer */}
-        <div className="flex items-center gap-2 justify-center py-2 px-3 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/20 text-[12px] font-mono text-emerald-300">
-          <ArrowDown className="w-4 h-4 text-emerald-400 animate-bounce" />
-          <span>
-            These 4 values <strong>[+0.72, -0.45, +1.14, -0.88]</strong> map 1-to-1 to the 4 input nodes <strong>(x₁, x₂, x₃, x₄)</strong> in the graph below!
-          </span>
+        {/* Introducing x1..x4 clearly so nobody gets confused */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 p-4 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 text-[12px] text-emerald-200">
+          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-300 shrink-0">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-mono font-bold text-white uppercase text-[11px] tracking-wide">
+              Introducing the Input Nodes (x₁, x₂, x₃, x₄):
+            </span>
+            <p className="leading-relaxed">
+              To pass these 4 coordinates into the neural network graph below, we label each dimension with a variable name:
+              <br />
+              <code className="text-amber-300 font-bold">x₁ = +0.72</code>, &nbsp;
+              <code className="text-amber-300 font-bold">x₂ = -0.45</code>, &nbsp;
+              <code className="text-amber-300 font-bold">x₃ = +1.14</code>, &nbsp;
+              <code className="text-amber-300 font-bold">x₄ = -0.88</code>.
+              <br />
+              <strong>That is all $x_1 \dots x_4$ are:</strong> the 4 coordinate numbers of this token entering the network!
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Neuron Network Visualization */}
-      <div className="rounded-xl border border-white/[0.08] bg-black/50 p-6 shadow-2xl flex flex-col items-center">
+      {/* 3. Operation Blueprint: What do the connection lines actually do? */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-2">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+            What do the connection lines (synapses) do?
+          </span>
+          <p className="text-[12px] text-[#B0B0B0] leading-relaxed">
+            Every line connecting an input node to a hidden node represents a <strong>learned multiplier weight (w)</strong>. When a signal travels along a line, it is multiplied by that line's weight. Green lines have positive weights (amplify); red/dim lines have negative weights (suppress).
+          </p>
+        </div>
+
+        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-2">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold">
+            What operation is performed on each hidden neuron?
+          </span>
+          <p className="text-[12px] text-[#B0B0B0] leading-relaxed">
+            Each hidden neuron computes a <strong>Weighted Sum</strong>:
+            <br />
+            <code className="text-white font-mono text-[11px]">Pre-Activation = (x₁·w₁) + (x₂·w₂) + (x₃·w₃) + (x₄·w₄) + bias</code>
+            <br />
+            Then applies <strong>GELU</strong>: If the sum is positive, the neuron fires! If negative, it is silenced to <code className="text-white">0.00</code>.
+          </p>
+        </div>
+      </div>
+
+      {/* 4. The Interactive Neuron Network Visualization */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between px-2">
+          <span className="text-[12px] font-mono uppercase tracking-wider text-white font-bold">
+            Interactive Neural Graph (Click any neuron to see its exact incoming math!)
+          </span>
+          <span className="text-[11px] font-mono text-emerald-400">
+            Token: "{attentionOutput.tokenText}"
+          </span>
+        </div>
+
         <NeuronGraph nodes={nodes} connections={connections} />
       </div>
     </div>

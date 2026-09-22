@@ -94,6 +94,13 @@ export interface AttentionHeadData {
   rawScores: number[][]; // Q * K^T / sqrt(d)
 }
 
+export interface FFNCalculationStep {
+  fromNode: string;
+  inputValue: number;
+  weight: number;
+  product: number;
+}
+
 export interface FFNLayerNode {
   id: string;
   label: string;
@@ -103,6 +110,8 @@ export interface FFNLayerNode {
   name?: string;
   role?: string;
   stageContext?: string;
+  bias?: number;
+  calculationSteps?: FFNCalculationStep[];
 }
 
 export interface AttentionOutputData {

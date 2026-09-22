@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FFNLayerNode } from '../../types';
+import { Lock, Zap, ArrowRight, Info, CheckCircle2, XCircle } from 'lucide-react';
 
 interface NeuronGraphProps {
   nodes: FFNLayerNode[];
@@ -8,13 +9,13 @@ interface NeuronGraphProps {
 }
 
 export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) => {
-  const [selectedNode, setSelectedNode] = useState<FFNLayerNode | null>(nodes[5]); // default h6
+  const [selectedNode, setSelectedNode] = useState<FFNLayerNode | null>(nodes[4]); // default h0 (h1)
 
-  const width = 580;
-  const height = 300;
+  const width = 640;
+  const height = 340;
 
   // Layer column x-coordinates
-  const layerX = [70, 290, 510];
+  const layerX = [90, 320, 550];
 
   // Organize nodes by layer
   const layer0 = nodes.filter((n) => n.layer === 0);
@@ -25,48 +26,92 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
     const x = layerX[node.layer];
     let y = 0;
     if (node.layer === 0) {
-      const step = (height - 60) / (layer0.length - 1);
+      const step = (height - 80) / (layer0.length - 1);
       const idx = layer0.findIndex((n) => n.id === node.id);
-      y = 30 + idx * step;
+      y = 40 + idx * step;
     } else if (node.layer === 1) {
-      const step = (height - 40) / (layer1.length - 1);
+      const step = (height - 50) / (layer1.length - 1);
       const idx = layer1.findIndex((n) => n.id === node.id);
-      y = 20 + idx * step;
+      y = 25 + idx * step;
     } else {
-      const step = (height - 60) / (layer2.length - 1);
+      const step = (height - 80) / (layer2.length - 1);
       const idx = layer2.findIndex((n) => n.id === node.id);
-      y = 30 + idx * step;
+      y = 40 + idx * step;
     }
     return { x, y };
   };
 
-  const getNodeColor = (node: FFNLayerNode) => {
+  // Check if a connection connects to the currently selected node
+  const isConnectionActive = (conn: { from: string; to: string }) => {
+    if (!selectedNode) return false;
+    return conn.to === selectedNode.id || conn.from === selectedNode.id;
+  };
+
+  const getNodeColor = (node: FFNLayerNode, isSelected: boolean) => {
+    // Layer 0: Input coordinates (Amber)
+    if (node.layer === 0) {
+      return isSelected
+        ? 'fill-amber-500/30 stroke-amber-400 text-amber-200'
+        : 'fill-amber-500/15 stroke-amber-500/60 text-amber-300';
+    }
+
+    // Layer 1: Hidden feature detectors (Emerald if active, Dark Slate if GELU silenced)
     if (node.layer === 1) {
-      // Hidden layer: show ReLU effect
       if (node.postRelu === 0) {
-        return 'fill-black stroke-white/20 text-[#666]';
+        return isSelected
+          ? 'fill-zinc-900 stroke-zinc-500 text-zinc-400'
+          : 'fill-black stroke-zinc-700/80 text-zinc-500';
       }
-      return 'fill-emerald-500/20 stroke-emerald-400 text-emerald-300';
+      return isSelected
+        ? 'fill-emerald-500/30 stroke-emerald-400 text-emerald-200'
+        : 'fill-emerald-500/15 stroke-emerald-500/60 text-emerald-300';
     }
-    if (node.value > 0) {
-      return 'fill-emerald-500/20 stroke-emerald-400 text-emerald-300';
-    }
-    return 'fill-purple-500/20 stroke-purple-400 text-purple-300';
+
+    // Layer 2: Output adjustments (Cyan)
+    return isSelected
+      ? 'fill-cyan-500/30 stroke-cyan-400 text-cyan-200'
+      : 'fill-cyan-500/15 stroke-cyan-500/60 text-cyan-300';
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-center">
-      {/* SVG Canvas */}
-      <div className="relative rounded-xl border border-white/[0.08] bg-black/60 p-4 shadow-2xl flex flex-col items-center">
-        {/* Layer Header labels */}
-        <div className="w-full flex justify-between px-10 text-[10px] font-mono uppercase tracking-wider text-[#A0A0A0] pb-2 border-b border-white/[0.06]">
-          <span>Input Proj (d)</span>
-          <span className="text-emerald-400 font-semibold">Hidden MLP (4× d) + GELU</span>
-          <span>Output Proj (d)</span>
+    <div className="flex flex-col xl:flex-row gap-6 items-start w-full">
+      {/* SVG Canvas Container */}
+      <div className="flex-1 w-full rounded-2xl border border-white/[0.08] bg-black/60 p-5 shadow-2xl flex flex-col items-center">
+        {/* Layer Header Labels with Plain-English Names */}
+        <div className="w-full grid grid-cols-3 text-center pb-3 border-b border-white/[0.06] mb-2">
+          {/* Layer 0 */}
+          <div className="flex flex-col items-center">
+            <span className="text-[11px] font-mono uppercase font-bold text-amber-400">
+              1. Input Layer (d=4)
+            </span>
+            <span className="text-[9px] font-mono text-[#888]">
+              Token Coordinates from Stage 4
+            </span>
+          </div>
+
+          {/* Layer 1 */}
+          <div className="flex flex-col items-center">
+            <span className="text-[11px] font-mono uppercase font-bold text-emerald-400">
+              2. Hidden MLP (4×d = 8) + GELU
+            </span>
+            <span className="text-[9px] font-mono text-[#888]">
+              Expanded Knowledge Feature Detectors
+            </span>
+          </div>
+
+          {/* Layer 2 */}
+          <div className="flex flex-col items-center">
+            <span className="text-[11px] font-mono uppercase font-bold text-cyan-400">
+              3. Output Layer (d=4)
+            </span>
+            <span className="text-[9px] font-mono text-[#888]">
+              Reasoning Updates for Stage 6 Logits
+            </span>
+          </div>
         </div>
 
-        <svg width={width} height={height} className="overflow-visible">
-          {/* Synapses Connections */}
+        <svg width={width} height={height} className="overflow-visible max-w-full h-auto">
+          {/* Synapses Connections (Weights) */}
           {connections.map((conn) => {
             const source = nodes.find((n) => n.id === conn.from);
             const target = nodes.find((n) => n.id === conn.to);
@@ -74,8 +119,26 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
 
             const sPos = getNodeCoordinates(source);
             const tPos = getNodeCoordinates(target);
+            const isConnectedToSelected = isConnectionActive(conn);
             const isPositive = conn.weight > 0;
-            const isZeroed = target.layer === 1 && target.postRelu === 0;
+            const isTargetZeroed = target.layer === 1 && target.postRelu === 0;
+
+            let strokeColor = 'rgba(255, 255, 255, 0.08)';
+            let strokeWidth = 1;
+
+            if (isConnectedToSelected) {
+              strokeColor = isPositive ? 'rgba(16, 185, 129, 0.95)' : 'rgba(244, 63, 94, 0.95)';
+              strokeWidth = 2.5;
+            } else if (isTargetZeroed) {
+              strokeColor = 'rgba(255, 255, 255, 0.03)';
+              strokeWidth = 0.75;
+            } else if (isPositive) {
+              strokeColor = 'rgba(16, 185, 129, 0.25)';
+              strokeWidth = 1.25;
+            } else {
+              strokeColor = 'rgba(244, 63, 94, 0.2)';
+              strokeWidth = 1.25;
+            }
 
             return (
               <g key={`${conn.from}-${conn.to}`}>
@@ -84,15 +147,9 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
                   y1={sPos.y}
                   x2={tPos.x}
                   y2={tPos.y}
-                  stroke={
-                    isZeroed
-                      ? 'rgba(255,255,255,0.03)'
-                      : isPositive
-                      ? 'rgba(16,185,129,0.35)'
-                      : 'rgba(168,85,247,0.25)'
-                  }
-                  strokeWidth={isZeroed ? 0.75 : Math.abs(conn.weight) * 2}
-                  strokeDasharray={isZeroed ? '2 2' : undefined}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={isConnectedToSelected ? '4 2' : isTargetZeroed ? '2 2' : undefined}
                 />
               </g>
             );
@@ -110,22 +167,36 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
                 onClick={() => setSelectedNode(node)}
                 className="cursor-pointer group"
               >
-                {/* Node Ring */}
+                {/* Glow ring on selected */}
+                {isSelected && (
+                  <circle
+                    cx={pos.x}
+                    cy={pos.y}
+                    r={node.layer === 1 ? 19 : 21}
+                    className="fill-none stroke-white/40 stroke-1 animate-pulse"
+                  />
+                )}
+
+                {/* Node circle */}
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r={node.layer === 1 ? 12 : 14}
-                  className={`transition-all ${getNodeColor(node)} ${
-                    isSelected ? 'stroke-[3px] stroke-white shadow-[0_0_16px_rgba(255,255,255,0.6)]' : 'stroke-[1.5px]'
+                  r={node.layer === 1 ? 14 : 16}
+                  className={`transition-all ${getNodeColor(node, isSelected)} ${
+                    isSelected
+                      ? 'stroke-[3px] stroke-white shadow-[0_0_24px_rgba(255,255,255,0.7)]'
+                      : 'stroke-[1.5px] hover:stroke-white/80'
                   }`}
                 />
 
-                {/* Text Label inside node */}
+                {/* Node Label (x1..x4, h1..h8, y1..y4) */}
                 <text
                   x={pos.x}
                   y={pos.y + 4}
                   textAnchor="middle"
-                  className="font-mono text-[9px] font-bold fill-white select-none pointer-events-none"
+                  className={`font-mono text-[10px] font-bold select-none pointer-events-none ${
+                    isDeactivated ? 'fill-zinc-500' : 'fill-white'
+                  }`}
                 >
                   {isDeactivated ? '0' : node.label}
                 </text>
@@ -134,82 +205,188 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
           })}
         </svg>
 
-        <div className="flex items-center gap-5 pt-3 border-t border-white/[0.06] text-[10px] font-mono text-[#A0A0A0]">
+        {/* Legend */}
+        <div className="flex flex-wrap items-center justify-center gap-5 pt-4 border-t border-white/[0.06] text-[11px] font-mono text-[#A0A0A0]">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-            <span>Active Neuron (&gt; 0)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+            <span>Input Dimensions (x₁..x₄)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full border border-white/20 bg-black" />
-            <span>GELU/ReLU Deactivated (0.00)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+            <span>Fired Feature (GELU &gt; 0)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-800 border border-zinc-600" />
+            <span>Silenced Noise (GELU = 0.00)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+            <span>Output Adjustments (y₁..y₄)</span>
           </div>
         </div>
       </div>
 
-      {/* Interactive Inspector */}
-      <div className="w-full lg:w-80 bg-[#111111] border border-white/[0.08] rounded-xl p-5 flex flex-col gap-3 shadow-xl">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold">
-            Neuron Telemetry & Context
-          </span>
-          <span className="text-[9px] font-mono text-[#888]">Click node to inspect</span>
+      {/* Interactive Telemetry & Math Arithmetic Inspector */}
+      <div className="w-full xl:w-96 bg-[#111111] border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-emerald-400" />
+            <span className="text-[12px] font-mono uppercase tracking-wider text-white font-bold">
+              Neuron Telemetry & Exact Math
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-[#888]">Click any node</span>
         </div>
 
         {selectedNode ? (
-          <div className="flex flex-col gap-3">
-            {/* Node ID & Human readable name */}
-            <div className="flex flex-col p-2.5 rounded bg-black/50 border border-white/[0.06] gap-0.5">
+          <div className="flex flex-col gap-4">
+            {/* Header: Node name & functional role */}
+            <div className="flex flex-col p-3 rounded-xl bg-black/60 border border-white/[0.08] gap-1">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-mono text-[#A0A0A0] uppercase">Node Symbol:</span>
-                <span className="text-[13px] font-mono font-bold text-white">
-                  {selectedNode.label} ({selectedNode.layer === 0 ? 'Input Layer' : selectedNode.layer === 1 ? 'Hidden Layer 1' : 'Output Layer 2'})
+                <span className="text-[10px] font-mono text-[#888] uppercase">
+                  {selectedNode.layer === 0
+                    ? 'Input Coordinate'
+                    : selectedNode.layer === 1
+                    ? 'Hidden Feature Detector'
+                    : 'Output Reasoning Coordinate'}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-white/[0.08] font-mono text-[12px] font-bold text-white">
+                  Node: {selectedNode.label}
                 </span>
               </div>
-              {selectedNode.name && (
-                <span className="text-[11px] font-medium text-emerald-300">
-                  {selectedNode.name}
-                </span>
-              )}
-            </div>
-
-            {/* Values */}
-            <div className="flex justify-between items-center p-2 rounded bg-white/[0.03] border border-white/[0.05]">
-              <span className="text-[11px] font-mono text-[#A0A0A0]">
-                {selectedNode.layer === 0 ? 'Coordinate Value:' : 'Pre-Activation:'}
+              <span className="text-[13px] font-semibold text-white">
+                {selectedNode.name || selectedNode.label}
               </span>
-              <span className={`text-[12px] font-mono font-semibold ${selectedNode.value < 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
-                {selectedNode.value >= 0 ? `+${selectedNode.value.toFixed(2)}` : selectedNode.value.toFixed(2)}
+              <span className="text-[11px] font-mono text-emerald-400">
+                {selectedNode.role}
               </span>
             </div>
 
+            {/* Arithmetic Breakdown for Hidden Neurons (Layer 1) */}
             {selectedNode.layer === 1 && (
-              <div className="flex justify-between items-center p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                <span className="text-[11px] font-mono text-emerald-400">Post-GELU Activation:</span>
-                <span className="text-[14px] font-mono font-bold text-emerald-300">
-                  {selectedNode.postRelu.toFixed(2)}
+              <div className="flex flex-col gap-2.5 p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-white font-bold">
+                    How Was Pre-Activation Calculated?
+                  </span>
+                  <span className="text-[10px] font-mono text-[#888]">∑ (Input × Weight) + Bias</span>
+                </div>
+
+                {/* Calculation steps */}
+                {selectedNode.calculationSteps && selectedNode.calculationSteps.length > 0 ? (
+                  <div className="flex flex-col gap-1.5 pt-1 text-[11px] font-mono">
+                    {selectedNode.calculationSteps.map((step, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-1.5 rounded bg-white/[0.02]">
+                        <span className="text-[#A0A0A0]">
+                          ({step.fromNode} = {step.inputValue >= 0 ? `+${step.inputValue.toFixed(2)}` : step.inputValue.toFixed(2)}) × (w = {step.weight >= 0 ? `+${step.weight.toFixed(2)}` : step.weight.toFixed(2)})
+                        </span>
+                        <span className="text-white font-semibold">
+                          = {step.product >= 0 ? `+${step.product.toFixed(2)}` : step.product.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Stored bias */}
+                    {selectedNode.bias !== undefined && (
+                      <div className="flex justify-between items-center p-1.5 rounded bg-white/[0.02] text-[#888]">
+                        <span>+ Stored Neuron Bias</span>
+                        <span>{selectedNode.bias >= 0 ? `+${selectedNode.bias.toFixed(2)}` : selectedNode.bias.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {/* Sum: Pre-Activation */}
+                    <div className="flex justify-between items-center pt-2 border-t border-white/10 font-bold text-[12px]">
+                      <span className="text-[#EDEDED]">Pre-Activation Sum:</span>
+                      <span className={selectedNode.value < 0 ? 'text-rose-400' : 'text-emerald-400'}>
+                        {selectedNode.value >= 0 ? `+${selectedNode.value.toFixed(2)}` : selectedNode.value.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-[11px] font-mono text-[#888]">
+                    Pre-activation: {selectedNode.value.toFixed(2)}
+                  </div>
+                )}
+
+                {/* GELU Gate Explanation */}
+                <div
+                  className={`p-3 rounded-lg border flex flex-col gap-1 mt-1 ${
+                    selectedNode.postRelu === 0
+                      ? 'bg-rose-500/[0.06] border-rose-500/20 text-rose-300'
+                      : 'bg-emerald-500/[0.06] border-emerald-500/20 text-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-[11px] font-mono uppercase">
+                    {selectedNode.postRelu === 0 ? (
+                      <>
+                        <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <span>GELU Gate Slams Shut (Blocked)</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>GELU Gate Opens (Fired)</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    {selectedNode.postRelu === 0 ? (
+                      <span>
+                        Pre-activation was <strong>negative ({selectedNode.value.toFixed(2)})</strong>. The GELU function acts as a threshold gate and silences it to <strong>0.00</strong> to prevent negative noise from propagating!
+                      </span>
+                    ) : (
+                      <span>
+                        Pre-activation was <strong>positive (+{selectedNode.value.toFixed(2)})</strong>. The feature detected an active pattern, passed through the GELU gate, and transmits <strong>{selectedNode.postRelu.toFixed(2)}</strong> forward to the output layer!
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Arithmetic Breakdown for Output Layer (Layer 2) */}
+            {selectedNode.layer === 2 && (
+              <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/40 border border-white/[0.06] text-[11px] font-mono">
+                <span className="text-white font-bold uppercase tracking-wider">
+                  How Was Output Calculated?
                 </span>
+                {selectedNode.calculationSteps && (
+                  <div className="flex flex-col gap-1 pt-1">
+                    {selectedNode.calculationSteps.map((step, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-1.5 rounded bg-white/[0.02]">
+                        <span className="text-[#A0A0A0]">
+                          ({step.fromNode} = {step.inputValue.toFixed(2)}) × (w = {step.weight >= 0 ? `+${step.weight.toFixed(2)}` : step.weight.toFixed(2)})
+                        </span>
+                        <span className="text-cyan-300 font-semibold">
+                          = {step.product >= 0 ? `+${step.product.toFixed(2)}` : step.product.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center pt-2 border-t border-white/10 font-bold text-[12px]">
+                      <span className="text-white">Output Value ({selectedNode.label}):</span>
+                      <span className="text-cyan-300">
+                        {selectedNode.value >= 0 ? `+${selectedNode.value.toFixed(2)}` : selectedNode.value.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Stage Context Callout */}
-            <div className="p-3 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 flex flex-col gap-1 mt-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
-                Context in the Pipeline:
-              </span>
+            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[10px] font-bold uppercase tracking-wider">
+                <Info className="w-3.5 h-3.5" />
+                <span>Context in the AI Pipeline:</span>
+              </div>
               <p className="text-[12px] leading-relaxed text-[#EDEDED]">
-                {selectedNode.stageContext || (
-                  selectedNode.layer === 0
-                    ? `Input dimension coordinate entering the FFN for token " the".`
-                    : selectedNode.layer === 1
-                    ? `Hidden knowledge feature in the 4× expanded MLP.`
-                    : `Output reasoning dimension projected toward Stage 6 word logits.`
-                )}
+                {selectedNode.stageContext}
               </p>
             </div>
           </div>
         ) : (
-          <div className="text-center py-6 text-[11px] text-[#666] font-mono">
-            Click any neuron circle to inspect its activation
+          <div className="text-center py-8 text-[12px] text-[#666] font-mono">
+            Click any neuron in the graph to see its incoming calculations
           </div>
         )}
       </div>

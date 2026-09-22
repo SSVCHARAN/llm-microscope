@@ -323,8 +323,13 @@ export const MOCK_DATA: MockPipelineData = {
       value: 1.85,
       postRelu: 1.85,
       name: 'Surface Pattern Detector',
-      role: 'Hidden Layer 1 Feature',
-      stageContext: 'Pre-activation = +1.85. The 4× expansion lets this neuron detect physical flat-surface patterns. Transmits forward to output.'
+      role: 'Factual Feature Detector',
+      stageContext: 'Tests for physical surface interaction. Fired strongly (+1.85) because both subject ("cat") and preposition ("on") are present.',
+      bias: 0.53,
+      calculationSteps: [
+        { fromNode: 'x₁', inputValue: 0.72, weight: 0.85, product: 0.61 },
+        { fromNode: 'x₃', inputValue: 1.14, weight: 0.62, product: 0.71 }
+      ]
     },
     {
       id: 'h_1',
@@ -332,9 +337,13 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 1,
       value: -0.92,
       postRelu: 0.00,
-      name: 'GELU-Silenced Noise Neuron',
-      role: 'Irrelevant Feature Filter',
-      stageContext: 'Pre-activation was negative (-0.92). Non-linear GELU activation silenced this neuron to 0.00 to block irrelevant noise.'
+      name: 'Irrelevant Noise Filter',
+      role: 'GELU-Silenced Neuron',
+      stageContext: 'Pre-activation was negative (-0.92). The GELU gate shuts off negative values to 0.00 so noise does not pollute reasoning.',
+      bias: -0.42,
+      calculationSteps: [
+        { fromNode: 'x₂', inputValue: -0.45, weight: 1.10, product: -0.50 }
+      ]
     },
     {
       id: 'h_2',
@@ -344,7 +353,12 @@ export const MOCK_DATA: MockPipelineData = {
       postRelu: 2.41,
       name: 'Feline Domestic Context',
       role: 'Factual Association Store',
-      stageContext: 'Fired strongly (+2.41)! Stored weights associate "cat sat" with domestic home locations like mats, rugs, and floors.'
+      stageContext: 'Fired (+2.41)! Stored weights associate "cat sat" with domestic resting spots (like mats, rugs, and floors).',
+      bias: 0.30,
+      calculationSteps: [
+        { fromNode: 'x₁', inputValue: 0.72, weight: 1.50, product: 1.08 },
+        { fromNode: 'x₃', inputValue: 1.14, weight: 0.90, product: 1.03 }
+      ]
     },
     {
       id: 'h_3',
@@ -352,9 +366,13 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 1,
       value: -1.33,
       postRelu: 0.00,
-      name: 'Airborne/Outdoor Motion',
-      role: 'GELU Cutoff',
-      stageContext: 'Silenced to 0.00. The sentence does not describe outdoor flight, so this feature is zeroed out.'
+      name: 'Airborne Flight Feature',
+      role: 'GELU-Silenced Neuron',
+      stageContext: 'Pre-activation was -1.33. Cats do not fly, so this aeronautical feature is completely silenced by GELU to 0.00.',
+      bias: -0.32,
+      calculationSteps: [
+        { fromNode: 'x₄', inputValue: -0.88, weight: 1.15, product: -1.01 }
+      ]
     },
     {
       id: 'h_4',
@@ -364,7 +382,11 @@ export const MOCK_DATA: MockPipelineData = {
       postRelu: 0.65,
       name: 'Indoor Setting Feature',
       role: 'Contextual Feature',
-      stageContext: 'Pre-activation = +0.65. Confirms an indoor domestic setting and passes activation to output nodes.'
+      stageContext: 'Pre-activation = +0.65. Confirms an indoor domestic setting and transmits activation into output nodes.',
+      bias: 0.14,
+      calculationSteps: [
+        { fromNode: 'x₃', inputValue: 1.14, weight: 0.45, product: 0.51 }
+      ]
     },
     {
       id: 'h_5',
@@ -374,7 +396,12 @@ export const MOCK_DATA: MockPipelineData = {
       postRelu: 3.12,
       name: 'Resting Surface Target',
       role: 'Key Factual Feature',
-      stageContext: 'Fired at maximum intensity (+3.12)! Sits downstream of "on the", detecting that the next word must be a resting surface!'
+      stageContext: 'Fired at maximum intensity (+3.12)! Sits downstream of "on the", detecting that the next word must be a resting surface!',
+      bias: 0.55,
+      calculationSteps: [
+        { fromNode: 'x₁', inputValue: 0.72, weight: 1.20, product: 0.86 },
+        { fromNode: 'x₃', inputValue: 1.14, weight: 1.50, product: 1.71 }
+      ]
     },
     {
       id: 'h_6',
@@ -383,8 +410,12 @@ export const MOCK_DATA: MockPipelineData = {
       value: -0.41,
       postRelu: 0.00,
       name: 'Abstract Concept Detector',
-      role: 'GELU Cutoff',
-      stageContext: 'Pre-activation was -0.41. Silenced to 0.00 because the sentence requires a concrete physical object, not an idea.'
+      role: 'GELU-Silenced Neuron',
+      stageContext: 'Pre-activation was -0.41. Silenced to 0.00 because the sentence requires a concrete physical object, not an idea.',
+      bias: -0.23,
+      calculationSteps: [
+        { fromNode: 'x₂', inputValue: -0.45, weight: 0.40, product: -0.18 }
+      ]
     },
     {
       id: 'h_7',
@@ -394,7 +425,11 @@ export const MOCK_DATA: MockPipelineData = {
       postRelu: 1.28,
       name: 'Singular Noun Expectation',
       role: 'Syntactic Requirement',
-      stageContext: 'Fired (+1.28). Enforces grammar rules: following "on the", the upcoming word must be a singular countable noun.'
+      stageContext: 'Fired (+1.28). Enforces grammar rules: following "on the", the upcoming word must be a singular countable noun.',
+      bias: 0.22,
+      calculationSteps: [
+        { fromNode: 'x₄', inputValue: -0.88, weight: -1.20, product: 1.06 }
+      ]
     },
     // Output layer (4 nodes) - feeds into Stage 6 Softmax!
     {
@@ -403,9 +438,14 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 2,
       value: 1.44,
       postRelu: 1.44,
-      name: 'Output Dimension 1',
+      name: 'Surface Dimension Amplifier',
       role: 'FFN Reasoning Output',
-      stageContext: 'Output coordinate 1. In Stage 6, it projects through the Unembedding matrix to boost words like "mat" and "floor".'
+      stageContext: 'Output coordinate 1. In Stage 6, it projects through the Unembedding matrix to boost words like "mat" and "floor".',
+      bias: 0.00,
+      calculationSteps: [
+        { fromNode: 'h₁', inputValue: 1.85, weight: 0.50, product: 0.93 },
+        { fromNode: 'h₃', inputValue: 2.41, weight: 0.21, product: 0.51 }
+      ]
     },
     {
       id: 'out_1',
@@ -413,9 +453,13 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 2,
       value: 0.89,
       postRelu: 0.89,
-      name: 'Output Dimension 2',
+      name: 'Domestic Word Booster',
       role: 'FFN Reasoning Output',
-      stageContext: 'Output coordinate 2. Strengthens domestic surface vocabulary logits.'
+      stageContext: 'Output coordinate 2. Strengthens domestic resting vocabulary logits in Stage 6.',
+      bias: 0.11,
+      calculationSteps: [
+        { fromNode: 'h₆', inputValue: 3.12, weight: 0.25, product: 0.78 }
+      ]
     },
     {
       id: 'out_2',
@@ -423,9 +467,13 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 2,
       value: -0.12,
       postRelu: -0.12,
-      name: 'Output Dimension 3',
+      name: 'Grammar Compatibility',
       role: 'FFN Reasoning Output',
-      stageContext: 'Output coordinate 3. Penalizes verbs, adjectives, and incompatible nouns.'
+      stageContext: 'Output coordinate 3. Penalizes verbs, adjectives, and incompatible words.',
+      bias: 0.00,
+      calculationSteps: [
+        { fromNode: 'h₅', inputValue: 0.65, weight: -0.18, product: -0.12 }
+      ]
     },
     {
       id: 'out_3',
@@ -433,24 +481,34 @@ export const MOCK_DATA: MockPipelineData = {
       layer: 2,
       value: 2.05,
       postRelu: 2.05,
-      name: 'Output Dimension 4',
+      name: 'Terminal Prediction Push',
       role: 'FFN Reasoning Output',
-      stageContext: 'Output coordinate 4. Added back to the token vector via Residual Connection and sent directly into Stage 6 (Softmax)!'
+      stageContext: 'Output coordinate 4. Added back via Residual Connection to create the final vector that selects "mat" in Stage 6!',
+      bias: 0.00,
+      calculationSteps: [
+        { fromNode: 'h₆', inputValue: 3.12, weight: 0.45, product: 1.40 },
+        { fromNode: 'h₈', inputValue: 1.28, weight: 0.51, product: 0.65 }
+      ]
     }
   ],
   ffnConnections: [
     { from: 'in_0', to: 'h_0', weight: 0.85 },
-    { from: 'in_0', to: 'h_2', weight: 0.62 },
-    { from: 'in_1', to: 'h_1', weight: -0.74 },
-    { from: 'in_2', to: 'h_3', weight: -0.91 },
-    { from: 'in_2', to: 'h_5', weight: 0.94 },
-    { from: 'in_3', to: 'h_6', weight: -0.48 },
-    { from: 'in_3', to: 'h_7', weight: 0.77 },
-    { from: 'h_0', to: 'out_0', weight: 0.88 },
-    { from: 'h_2', to: 'out_0', weight: 0.73 },
-    { from: 'h_5', to: 'out_1', weight: 0.95 },
-    { from: 'h_4', to: 'out_3', weight: 0.68 },
-    { from: 'h_7', to: 'out_3', weight: 0.82 }
+    { from: 'in_2', to: 'h_0', weight: 0.62 },
+    { from: 'in_1', to: 'h_1', weight: 1.10 },
+    { from: 'in_0', to: 'h_2', weight: 1.50 },
+    { from: 'in_2', to: 'h_2', weight: 0.90 },
+    { from: 'in_3', to: 'h_3', weight: 1.15 },
+    { from: 'in_2', to: 'h_4', weight: 0.45 },
+    { from: 'in_0', to: 'h_5', weight: 1.20 },
+    { from: 'in_2', to: 'h_5', weight: 1.50 },
+    { from: 'in_1', to: 'h_6', weight: 0.40 },
+    { from: 'in_3', to: 'h_7', weight: -1.20 },
+    { from: 'h_0', to: 'out_0', weight: 0.50 },
+    { from: 'h_2', to: 'out_0', weight: 0.21 },
+    { from: 'h_5', to: 'out_1', weight: 0.25 },
+    { from: 'h_4', to: 'out_2', weight: -0.18 },
+    { from: 'h_5', to: 'out_3', weight: 0.45 },
+    { from: 'h_7', to: 'out_3', weight: 0.51 }
   ],
   logits: [
     { rank: 1, token: ' mat', display: '␣mat', logit: 7.83, probability: 0.421, logprob: -0.865, isWinner: true },
