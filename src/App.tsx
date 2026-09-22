@@ -62,6 +62,8 @@ export function App() {
           <AttentionQKVStage
             tokens={mockData.tokens}
             qkv={mockData.qkv}
+            embeddings={mockData.embeddings}
+            qkvWeights={mockData.qkvWeights}
           />
         );
       case 'attention_heatmap':

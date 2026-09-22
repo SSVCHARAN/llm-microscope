@@ -112,6 +112,12 @@ export interface CandidateLogit {
   isWinner?: boolean;
 }
 
+export interface QKVProjectionWeights {
+  wQ: number[][];
+  wK: number[][];
+  wV: number[][];
+}
+
 export interface MockPipelineData {
   prompt: string;
   outputToken: string;
@@ -119,6 +125,7 @@ export interface MockPipelineData {
   tokens: TokenItem[];
   embeddings: EmbeddingVector[];
   qkv: QKVData[];
+  qkvWeights: QKVProjectionWeights;
   attentionHeads: AttentionHeadData[];
   ffnNodes: FFNLayerNode[];
   ffnConnections: { from: string; to: string; weight: number }[];

@@ -7,6 +7,7 @@ interface VectorBarProps {
   vector: number[];
   colorTheme?: 'emerald' | 'cyan' | 'purple' | 'amber';
   maxVisibleDims?: number;
+  dimensionLabel?: string;
 }
 
 export const VectorBar: React.FC<VectorBarProps> = ({
@@ -14,7 +15,8 @@ export const VectorBar: React.FC<VectorBarProps> = ({
   sublabel,
   vector,
   colorTheme = 'emerald',
-  maxVisibleDims = 8
+  maxVisibleDims = 8,
+  dimensionLabel = '...[768-D]'
 }) => {
   const displayedDims = vector.slice(0, maxVisibleDims);
 
@@ -66,7 +68,7 @@ export const VectorBar: React.FC<VectorBarProps> = ({
           </motion.div>
         ))}
         <span className="text-[10px] font-mono text-[#666] pl-1">
-          ...[768-D]
+          {dimensionLabel}
         </span>
       </div>
     </div>
