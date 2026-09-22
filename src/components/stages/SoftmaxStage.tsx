@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Sliders, Flame, Snowflake, Sigma, X as MultiplyIcon, Equal, TableProperties, Sparkles, BookOpen, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { CandidateLogit, UnembeddingData } from '../../types';
-import { ProbabilityBars } from '../visualizations/ProbabilityBars';
 import { SoftmaxCurve } from '../visualizations/SoftmaxCurve';
 import { VectorBar } from '../visualizations/VectorBar';
 
@@ -326,44 +325,218 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
         </div>
       </div>
 
-      {/* 3. Visualizations: Softmax Curve + Resulting Probability Bars */}
+      {/* 3. Visualizations: Softmax Curve + Temperature Deep-Dive */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Softmax Exponential Curve */}
         <div className="lg:col-span-5 flex flex-col gap-3">
           <SoftmaxCurve candidates={candidates} temperature={temperature} />
 
-          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] text-[11px] text-[#A0A0A0] leading-relaxed">
-            {temperature < 0.5 ? (
-              <span className="text-cyan-300">
-                🧊 <strong>Cold Temperature (T = {temperature.toFixed(2)}):</strong> The exponential curve is steep! The top token absorbs nearly 100% of the probability, making the model deterministic and robotic.
-              </span>
-            ) : temperature > 1.2 ? (
-              <span className="text-rose-300">
-                🔥 <strong>Hot Temperature (T = {temperature.toFixed(2)}):</strong> The curve flattens out! Lower-ranked candidates get boosted, creating high diversity but risking chaotic or nonsensical outputs.
-              </span>
-            ) : (
-              <span>
-                ⚖️ <strong>Balanced Temperature (T = {temperature.toFixed(2)}):</strong> Natural sweet spot used in most modern chat systems.
-              </span>
-            )}
+          <div className="p-4 rounded-xl bg-black/40 border border-white/[0.06] flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-white font-mono text-[12px] font-bold">
+              <BookOpen className="w-4 h-4 text-emerald-400" />
+              <span>How Curve Steepness Dictates Output</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-[#A0A0A0]">
+              The exponential function <code className="text-emerald-300">y = e^(z/T)</code> is the bridge between raw neural scores and real-world English tokens:
+            </p>
+            <ul className="text-[11px] text-[#A0A0A0] space-y-1.5 list-disc list-inside">
+              <li>
+                <strong className="text-white">Steep slope (Low T):</strong> The top logit ({candidates[0]?.display}) shoots up like a cliff while runners-up drop to near zero, giving the leader almost 100% probability.
+              </li>
+              <li>
+                <strong className="text-white">Gentle slope (High T):</strong> The cliff flattens into a gentle hill, allowing lower-ranked words to sit much closer in height and receive viable probability slices.
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Real-time Probability Bars */}
-        <div className="lg:col-span-7 flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-black/50 p-5 shadow-2xl">
-          <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <Sigma className="w-4 h-4 text-emerald-400" />
-              <span className="text-[12px] font-mono uppercase tracking-wider text-white font-semibold">
-                Top Vocabulary Probabilities (50,257 Total)
+        {/* Temperature (T) Deep-Dive & Control Panel */}
+        <div className="lg:col-span-7 flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-black/60 p-6 shadow-2xl">
+          {/* Header & Quick Dial Presets */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-emerald-400" />
+                <span className="text-[13px] font-mono uppercase tracking-wider text-white font-bold">
+                  Understanding Temperature (T)
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-emerald-400">
+                Mathematical Role: Divisor inside the exponent exp(z / T)
               </span>
             </div>
-            <span className="text-[10px] font-mono text-[#888]">
-              ∑ Probabilities = 100%
-            </span>
+
+            {/* Quick Preset Buttons */}
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <button
+                onClick={() => onTemperatureChange(0.2)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all border ${
+                  temperature <= 0.3
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                    : 'bg-white/[0.03] text-[#888] border-white/[0.06] hover:text-white'
+                }`}
+              >
+                🧊 Cold (0.2)
+              </button>
+              <button
+                onClick={() => onTemperatureChange(0.7)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all border ${
+                  temperature > 0.3 && temperature <= 1.0
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                    : 'bg-white/[0.03] text-[#888] border-white/[0.06] hover:text-white'
+                }`}
+              >
+                ⚖️ Balanced (0.7)
+              </button>
+              <button
+                onClick={() => onTemperatureChange(1.5)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all border ${
+                  temperature > 1.0
+                    ? 'bg-rose-500/20 text-rose-300 border-rose-400/40 shadow-[0_0_10px_rgba(244,63,94,0.3)]'
+                    : 'bg-white/[0.03] text-[#888] border-white/[0.06] hover:text-white'
+                }`}
+              >
+                🔥 Hot (1.5)
+              </button>
+            </div>
           </div>
 
-          <ProbabilityBars candidates={candidates} showLogit={true} />
+          {/* Live Telemetry Display */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Active Regime */}
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1">
+              <span className="text-[10px] font-mono uppercase text-[#888]">Current Regime</span>
+              <div className="text-[12px] font-mono font-bold">
+                {temperature < 0.5 ? (
+                  <span className="text-cyan-400">🧊 Deterministic</span>
+                ) : temperature > 1.1 ? (
+                  <span className="text-rose-400">🔥 High Entropy</span>
+                ) : (
+                  <span className="text-emerald-400">⚖️ Balanced Chat</span>
+                )}
+              </div>
+              <span className="text-[10px] text-[#777] leading-tight">
+                {temperature < 0.5
+                  ? 'Argmax / greedy sampling'
+                  : temperature > 1.1
+                  ? 'High risk of hallucination'
+                  : 'ChatGPT & Claude default'}
+              </span>
+            </div>
+
+            {/* Top Token Dominance */}
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1">
+              <span className="text-[10px] font-mono uppercase text-[#888]">#1 Token Dominance</span>
+              <div className="text-[13px] font-mono font-bold text-white flex items-center gap-1.5">
+                <span className="text-emerald-400">{candidates[0]?.display}</span>
+                <span>{(candidates[0]?.probability * 100).toFixed(1)}%</span>
+              </div>
+              <span className="text-[10px] text-[#777] leading-tight">
+                {candidates[0]?.probability > 0.85
+                  ? 'Monopolizing probability'
+                  : candidates[0]?.probability > 0.5
+                  ? 'Clear comfortable favorite'
+                  : 'Highly contested / uncertain'}
+              </span>
+            </div>
+
+            {/* Competitor Viability */}
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1">
+              <span className="text-[10px] font-mono uppercase text-[#888]">#2 Token Viability</span>
+              <div className="text-[13px] font-mono font-bold text-white flex items-center gap-1.5">
+                <span className="text-[#BBB]">{candidates[1]?.display}</span>
+                <span>{(candidates[1]?.probability * 100).toFixed(1)}%</span>
+              </div>
+              <span className="text-[10px] text-[#777] leading-tight">
+                {candidates[1]?.probability < 0.05
+                  ? 'Almost no chance of selection'
+                  : 'Competitive alternate branch'}
+              </span>
+            </div>
+          </div>
+
+          {/* The 3 Regimes Explained */}
+          <div className="flex flex-col gap-2.5">
+            <span className="text-[11px] font-mono uppercase text-[#888] font-semibold tracking-wider">
+              The Three Temperature Regimes
+            </span>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Cold */}
+              <div className={`p-3.5 rounded-xl border flex flex-col gap-1.5 transition-all ${
+                temperature < 0.5
+                  ? 'bg-cyan-950/20 border-cyan-500/40 ring-1 ring-cyan-500/30'
+                  : 'bg-white/[0.02] border-white/[0.06]'
+              }`}>
+                <div className="flex items-center gap-1.5 text-cyan-400 font-mono text-[11px] font-bold">
+                  <Snowflake className="w-3.5 h-3.5" />
+                  <span>Cold (T &lt; 0.5)</span>
+                </div>
+                <div className="text-[10px] font-mono text-white/90">
+                  "The Calculator"
+                </div>
+                <p className="text-[10px] leading-relaxed text-[#A0A0A0]">
+                  Dividing by decimals makes logits huge. Exponents diverge dramatically: <strong className="text-white">the top token takes almost 100%</strong>.
+                </p>
+                <div className="mt-auto pt-1 text-[9px] font-mono text-cyan-300/80">
+                  ✓ Math, Code, SQL, Facts<br />
+                  ✗ Repetitive loops
+                </div>
+              </div>
+
+              {/* Balanced */}
+              <div className={`p-3.5 rounded-xl border flex flex-col gap-1.5 transition-all ${
+                temperature >= 0.5 && temperature <= 1.1
+                  ? 'bg-emerald-950/20 border-emerald-500/40 ring-1 ring-emerald-500/30'
+                  : 'bg-white/[0.02] border-white/[0.06]'
+              }`}>
+                <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px] font-bold">
+                  <span className="text-sm">⚖️</span>
+                  <span>Balanced (T = 0.7 - 1.0)</span>
+                </div>
+                <div className="text-[10px] font-mono text-white/90">
+                  "The Conversationalist"
+                </div>
+                <p className="text-[10px] leading-relaxed text-[#A0A0A0]">
+                  Preserves top candidate rankings while giving reasonable synonyms a 5–20% chance to be picked.
+                </p>
+                <div className="mt-auto pt-1 text-[9px] font-mono text-emerald-300/80">
+                  ✓ Natural rhythm & variety<br />
+                  ✓ Used in ChatGPT & Claude
+                </div>
+              </div>
+
+              {/* Hot */}
+              <div className={`p-3.5 rounded-xl border flex flex-col gap-1.5 transition-all ${
+                temperature > 1.1
+                  ? 'bg-rose-950/20 border-rose-500/40 ring-1 ring-rose-500/30'
+                  : 'bg-white/[0.02] border-white/[0.06]'
+              }`}>
+                <div className="flex items-center gap-1.5 text-rose-400 font-mono text-[11px] font-bold">
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>Hot (T &gt; 1.2)</span>
+                </div>
+                <div className="text-[10px] font-mono text-white/90">
+                  "The Chaotic Dreamer"
+                </div>
+                <p className="text-[10px] leading-relaxed text-[#A0A0A0]">
+                  Dividing by large T compresses differences toward zero (z/T → 0, e^0 = 1). All 50,257 tokens approach equal probability.
+                </p>
+                <div className="mt-auto pt-1 text-[9px] font-mono text-rose-300/80">
+                  ✓ Wild metaphors & brainstorming<br />
+                  ✗ Hallucinations & gibberish
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Developer Insight / Myth-Buster Callout */}
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-[#A0A0A0]">
+            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <span>
+              <strong className="text-white">Why isn't Temperature trained?</strong> Temperature is purely an <em>inference-time hyperparameter</em>. The neural network's weights and the resulting logits ({candidates[0]?.display} = {candidates[0]?.logit.toFixed(2)}) remain 100% identical. Temperature is just a slider applied in the user's browser or API call to control how risk-tolerant the sampling is!
+            </span>
+          </div>
         </div>
       </div>
     </div>
