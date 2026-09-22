@@ -88,6 +88,7 @@ export function App() {
             candidates={dynamicLogits}
             temperature={temperature}
             onTemperatureChange={setTemperature}
+            unembeddingData={mockData.unembeddingData}
           />
         );
       case 'sampling':

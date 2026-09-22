@@ -510,6 +510,65 @@ export const MOCK_DATA: MockPipelineData = {
     { from: 'h_5', to: 'out_3', weight: 0.45 },
     { from: 'h_7', to: 'out_3', weight: 0.51 }
   ],
+  unembeddingData: {
+    finalVector: [2.16, 0.44, 1.02, 1.17],
+    columns: [
+      {
+        token: ' mat',
+        display: '␣mat',
+        weights: [1.80, 0.85, 0.65, 2.50],
+        dotProductCalculation: '(2.16 × 1.80) + (0.44 × 0.85) + (1.02 × 0.65) + (1.17 × 2.50) = 3.89 + 0.37 + 0.66 + 2.91 = +7.83',
+        logit: 7.83,
+        category: 'top',
+        explanation: 'Maximum dot-product alignment! The final vector points directly toward domestic flat resting surfaces.'
+      },
+      {
+        token: ' floor',
+        display: '␣floor',
+        weights: [1.50, 0.70, 0.50, 2.00],
+        dotProductCalculation: '(2.16 × 1.50) + (0.44 × 0.70) + (1.02 × 0.50) + (1.17 × 2.00) = 3.24 + 0.31 + 0.51 + 2.36 = +6.42',
+        logit: 6.42,
+        category: 'runner_up',
+        explanation: 'Strong candidate. Represents a common flat indoor physical surface where cats sit.'
+      },
+      {
+        token: ' rug',
+        display: '␣rug',
+        weights: [1.40, 0.65, 0.55, 1.95],
+        dotProductCalculation: '(2.16 × 1.40) + (0.44 × 0.65) + (1.02 × 0.55) + (1.17 × 1.95) = 3.02 + 0.29 + 0.56 + 2.28 = +6.15',
+        logit: 6.15,
+        category: 'runner_up',
+        explanation: 'Feline resting fabric surface.'
+      },
+      {
+        token: ' bed',
+        display: '␣bed',
+        weights: [1.30, 0.60, 0.50, 1.90],
+        dotProductCalculation: '(2.16 × 1.30) + (0.44 × 0.60) + (1.02 × 0.50) + (1.17 × 1.90) = 2.81 + 0.26 + 0.51 + 2.30 = +5.88',
+        logit: 5.88,
+        category: 'runner_up',
+        explanation: 'Common indoor furniture location.'
+      },
+      {
+        token: ' quantum',
+        display: '␣quantum',
+        weights: [-0.80, 0.40, -1.20, -0.40],
+        dotProductCalculation: '(2.16 × -0.80) + (0.44 × 0.40) + (1.02 × -1.20) + (1.17 × -0.40) = -1.73 + 0.18 - 1.22 - 0.47 = -3.24',
+        logit: -3.24,
+        category: 'unrelated',
+        explanation: 'Unrelated physics concept. The vector points in the opposite direction, producing a negative logit!'
+      },
+      {
+        token: ' banana',
+        display: '␣banana',
+        weights: [-1.10, -0.30, -0.80, -0.90],
+        dotProductCalculation: '(2.16 × -1.10) + (0.44 × -0.30) + (1.02 × -0.80) + (1.17 × -0.90) = -2.38 - 0.13 - 0.82 - 1.05 = -4.38',
+        logit: -4.38,
+        category: 'unrelated',
+        explanation: 'Irrelevant food item. Strongly penalized with a negative score that squashes to near 0.00% in softmax.'
+      }
+    ]
+  },
   logits: [
     { rank: 1, token: ' mat', display: '␣mat', logit: 7.83, probability: 0.421, logprob: -0.865, isWinner: true },
     { rank: 2, token: ' floor', display: '␣floor', logit: 6.42, probability: 0.103, logprob: -2.273 },

@@ -127,11 +127,28 @@ export interface AttentionOutputData {
   }[];
 }
 
+export interface UnembeddingColumn {
+  token: string;
+  display: string;
+  weights: number[]; // 4 weights for this vocabulary token
+  dotProductCalculation: string;
+  logit: number;
+  category: 'top' | 'runner_up' | 'unrelated';
+  explanation: string;
+}
+
+export interface UnembeddingData {
+  finalVector: number[]; // [2.16, 0.44, 1.02, 1.17]
+  columns: UnembeddingColumn[];
+}
+
 export interface CandidateLogit {
   rank: number;
   token: string;
   display: string;
   logit: number;
+  scaledLogit?: number;
+  expVal?: number;
   probability: number;
   logprob: number;
   isWinner?: boolean;
@@ -155,6 +172,7 @@ export interface MockPipelineData {
   attentionOutput: AttentionOutputData;
   ffnNodes: FFNLayerNode[];
   ffnConnections: { from: string; to: string; weight: number }[];
+  unembeddingData: UnembeddingData;
   logits: CandidateLogit[];
   samplingParams: {
     temperature: number;

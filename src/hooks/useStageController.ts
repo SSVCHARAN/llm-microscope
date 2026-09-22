@@ -98,6 +98,8 @@ export function useStageController() {
         token: item.token,
         display: item.display,
         logit: item.logit,
+        scaledLogit: item.scaledLogit,
+        expVal: exps[idx],
         probability: prob,
         logprob: Math.log(Math.max(1e-9, prob)),
         isWinner: item.token === winnerToken
