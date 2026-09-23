@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,29 +8,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#090A0C",
+        background: "rgb(var(--color-background-rgb) / <alpha-value>)",
         surface: {
-          DEFAULT: "#111317",
-          raised: "#16191F",
-          subtle: "#0D0F12"
+          DEFAULT: "rgb(var(--color-surface-rgb) / <alpha-value>)",
+          raised: "rgb(var(--color-surface-raised-rgb) / <alpha-value>)",
+          subtle: "rgb(var(--color-surface-subtle-rgb) / <alpha-value>)",
+          border: "var(--color-border)"
         },
         border: {
-          DEFAULT: "rgba(255, 255, 255, 0.08)",
-          subtle: "rgba(255, 255, 255, 0.05)",
-          hover: "rgba(255, 255, 255, 0.15)",
-          active: "rgba(16, 185, 129, 0.4)"
+          DEFAULT: "var(--color-border)",
+          subtle: "var(--color-border-subtle)",
+          hover: "var(--color-border-hover)",
+          active: "var(--color-border-active)"
         },
         primary: {
-          DEFAULT: "#10b981",
-          hover: "#059669",
-          muted: "rgba(16, 185, 129, 0.15)",
-          glow: "rgba(16, 185, 129, 0.3)"
+          DEFAULT: "rgb(var(--color-primary-rgb) / <alpha-value>)",
+          hover: "var(--color-primary-hover)",
+          muted: "var(--color-primary-muted)",
+          glow: "var(--color-primary-glow)"
         },
         text: {
-          main: "#EDEDED",
-          secondary: "#D4D4D8",
-          muted: "#94A3B8",
-          dim: "#64748B"
+          DEFAULT: "var(--color-text-main)",
+          main: "var(--color-text-main)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
+          dim: "var(--color-text-dim)"
         }
       },
       fontFamily: {

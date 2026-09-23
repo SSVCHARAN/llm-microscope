@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { CandidateLogit } from '../../types';
 
 interface SoftmaxCurveProps {
@@ -34,13 +35,13 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
   const areaData = `${pathData} L ${width - padding},${height - padding} L ${padding},${height - padding} Z`;
 
   return (
-    <div className="flex flex-col gap-3 p-5 rounded-2xl border border-white/[0.08] bg-black/60 shadow-2xl">
-      <div className="flex justify-between items-center text-[12px] font-mono border-b border-white/[0.06] pb-3">
-        <span className="text-white font-bold uppercase tracking-wider flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+    <div className="flex flex-col gap-3 p-5 rounded-2xl border border-border bg-surface shadow-sm dark:shadow-2xl transition-colors duration-200">
+      <div className="flex justify-between items-center text-[12px] font-mono border-b border-border-subtle pb-3">
+        <span className="text-text-main font-bold uppercase tracking-wider flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
           Exponential Curve: exp(z / T)
         </span>
-        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[11px] font-bold border border-emerald-500/20">
+        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-[11px] font-bold border border-emerald-500/20">
           T = {temperature.toFixed(2)}
         </span>
       </div>
@@ -53,7 +54,7 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
       >
         <defs>
           <linearGradient id="softmaxCurveGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
             <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
           </linearGradient>
         </defs>
@@ -64,7 +65,8 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
           y1={height - padding}
           x2={width - padding}
           y2={height - padding}
-          stroke="rgba(255,255,255,0.15)"
+          stroke="currentColor"
+          className="text-slate-300 dark:text-white/15"
           strokeWidth={1}
         />
         <line
@@ -72,28 +74,33 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
           y1={padding}
           x2={padding}
           y2={height - padding}
-          stroke="rgba(255,255,255,0.15)"
+          stroke="currentColor"
+          className="text-slate-300 dark:text-white/15"
           strokeWidth={1}
         />
 
         {/* Labels */}
-        <text x={padding} y={height - 10} className="font-mono text-[9px] fill-[#A3A3A3]">
+        <text x={padding} y={height - 10} className="font-mono text-[9px] fill-slate-500 dark:fill-[#A3A3A3]">
           Logit 4.0
         </text>
-        <text x={width - padding - 35} y={height - 10} className="font-mono text-[9px] fill-[#A3A3A3]">
+        <text x={width - padding - 35} y={height - 10} className="font-mono text-[9px] fill-slate-500 dark:fill-[#A3A3A3]">
           Logit 8.5
         </text>
-        <text x={padding - 10} y={padding - 5} className="font-mono text-[9px] fill-[#A3A3A3]" textAnchor="end">
+        <text x={padding - 10} y={padding - 5} className="font-mono text-[9px] fill-slate-500 dark:fill-[#A3A3A3]" textAnchor="end">
           exp(z)
         </text>
 
         {/* Softmax curve area gradient & line */}
         <path d={areaData} fill="url(#softmaxCurveGradient)" />
-        <path
+        <motion.path
           d={pathData}
           fill="none"
-          stroke="rgba(16,185,129,0.95)"
+          stroke="currentColor"
+          className="text-emerald-600 dark:text-emerald-400"
           strokeWidth={2.5}
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         />
 
         {/* Dots for top candidates */}
@@ -107,27 +114,40 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
           const textOffsetY = isWinner ? -10 : idx % 2 === 0 ? -9 : 14;
 
           return (
-            <g key={cand.token}>
+            <motion.g
+              key={cand.token}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.35 + idx * 0.1, type: "spring", stiffness: 350, damping: 20 }}
+            >
               <circle
                 cx={svgX}
                 cy={svgY}
-                r={isWinner ? 5 : 3.5}
-                className={isWinner ? "fill-emerald-400 stroke-white stroke-2 shadow-lg" : "fill-white stroke-emerald-500 stroke-2"}
+                r={isWinner ? 5.5 : 3.5}
+                className={
+                  isWinner
+                    ? "fill-emerald-500 stroke-white stroke-2 shadow-[0_0_12px_rgba(5,150,105,0.8)]"
+                    : "fill-white dark:fill-surface stroke-emerald-600 dark:stroke-emerald-500 stroke-2"
+                }
               />
               <text
                 x={svgX}
                 y={svgY + textOffsetY}
                 textAnchor="middle"
-                className={`font-mono text-[9px] ${isWinner ? 'fill-emerald-300 font-extrabold' : 'fill-[#E2E8F0] font-medium'}`}
+                className={`font-mono text-[9px] ${
+                  isWinner
+                    ? 'fill-emerald-800 dark:fill-emerald-300 font-extrabold'
+                    : 'fill-slate-700 dark:fill-[#E2E8F0] font-semibold'
+                }`}
               >
                 {cand.display}
               </text>
-            </g>
+            </motion.g>
           );
         })}
       </svg>
 
-      <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] text-[11px] font-mono text-[#A0A0A0] text-center">
+      <div className="p-2.5 rounded-lg bg-surface-raised border border-border-subtle text-[11px] font-mono text-text-muted text-center">
         The exponential function e^(z/T) exponentially blows up the top logits while compressing lower logits toward zero.
       </div>
     </div>

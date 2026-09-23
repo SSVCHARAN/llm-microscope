@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStageController } from './hooks/useStageController';
+import { useStageController, STAGE_PHASE_COUNTS } from './hooks/useStageController';
 import { useMicroscope } from './hooks/useMicroscope';
 import { usePipelineVisualizer } from './hooks/usePipelineVisualizer';
 
@@ -8,6 +8,7 @@ import { usePipelineVisualizer } from './hooks/usePipelineVisualizer';
 import { InputBar } from './components/InputBar';
 import { StageHeader } from './components/StageHeader';
 import { ExplainerCard } from './components/ExplainerCard';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // 7 Educational Stages (Mode: Architecture Walkthrough)
 import { TokenizationStage } from './components/stages/TokenizationStage';
@@ -61,6 +62,77 @@ export function App() {
   // Visualizer State Machine for Live Generation Loop
   const visualizer = usePipelineVisualizer(microscope.steps, microscope.isGenerating);
 
+  // ─── Autoplay Integration ──────────────────────────────────────
+  const stageHeaderRef = useRef<HTMLElement>(null);
+
+  // Compute the phase prop for stage components:
+  // When autoplay is active → pass the currentPhase number
+  // When manually navigating → pass undefined (show all content)
+  const stagePhase = stageCtrl.isAutoPlaying ? stageCtrl.currentPhase : undefined;
+
+  // Auto-pause when user interacts with the stage canvas
+  const handleStageInteraction = useCallback(() => {
+    if (stageCtrl.isAutoPlaying) {
+      stageCtrl.toggleAutoPlay();
+    }
+  }, [stageCtrl.isAutoPlaying, stageCtrl.toggleAutoPlay]);
+
+  // Controlled educational scroll during autoplay:
+  // - On stage transition (or phase 0): smoothly scrolls stage header into view at top
+  // - On phase 1 / 2: smoothly scrolls to center the revealed data-autoplay-focal element
+  const prevStageIndexRef = useRef(stageCtrl.activeStageIndex);
+  useEffect(() => {
+    if (!stageCtrl.isAutoPlaying) {
+      if (prevStageIndexRef.current !== stageCtrl.activeStageIndex) {
+        prevStageIndexRef.current = stageCtrl.activeStageIndex;
+        stageHeaderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+
+    if (prevStageIndexRef.current !== stageCtrl.activeStageIndex || stageCtrl.currentPhase === 0) {
+      prevStageIndexRef.current = stageCtrl.activeStageIndex;
+      stageHeaderRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Small timeout to allow DOM to render and animate revealed section
+      const timer = setTimeout(() => {
+        const focalEl = document.querySelector('[data-autoplay-focal="true"]');
+        if (focalEl) {
+          focalEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [stageCtrl.activeStageIndex, stageCtrl.currentPhase, stageCtrl.isAutoPlaying]);
+
+  // Keyboard shortcuts for architecture mode
+  useEffect(() => {
+    if (appMode !== 'architecture') return;
+
+    const handler = (e: KeyboardEvent) => {
+      // Don't intercept when user is focused on an input/textarea/select
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
+
+      switch (e.key) {
+        case 'p':
+        case 'P':
+          e.preventDefault();
+          stageCtrl.toggleAutoPlay();
+          break;
+        case 'Escape':
+          if (stageCtrl.isAutoPlaying) {
+            e.preventDefault();
+            stageCtrl.toggleAutoPlay();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [appMode, stageCtrl.isAutoPlaying, stageCtrl.toggleAutoPlay]);
+
   // Render stage component for Architecture Walkthrough
   const renderActiveStageComponent = () => {
     switch (stageCtrl.currentStage.id) {
@@ -69,6 +141,7 @@ export function App() {
           <TokenizationStage
             tokens={stageCtrl.mockData.tokens}
             rawPrompt={stageCtrl.mockData.prompt}
+            phase={stagePhase}
           />
         );
       case 'embedding':
@@ -76,6 +149,7 @@ export function App() {
           <EmbeddingStage
             tokens={stageCtrl.mockData.tokens}
             embeddings={stageCtrl.mockData.embeddings}
+            phase={stagePhase}
           />
         );
       case 'attention_qkv':
@@ -85,6 +159,7 @@ export function App() {
             qkv={stageCtrl.mockData.qkv}
             embeddings={stageCtrl.mockData.embeddings}
             qkvWeights={stageCtrl.mockData.qkvWeights}
+            phase={stagePhase}
           />
         );
       case 'attention_heatmap':
@@ -93,6 +168,7 @@ export function App() {
             tokens={stageCtrl.mockData.tokens}
             heads={stageCtrl.mockData.attentionHeads}
             attentionOutput={stageCtrl.mockData.attentionOutput}
+            phase={stagePhase}
           />
         );
       case 'feed_forward':
@@ -101,6 +177,7 @@ export function App() {
             nodes={stageCtrl.mockData.ffnNodes}
             connections={stageCtrl.mockData.ffnConnections}
             attentionOutput={stageCtrl.mockData.attentionOutput}
+            phase={stagePhase}
           />
         );
       case 'softmax':
@@ -110,6 +187,7 @@ export function App() {
             temperature={stageCtrl.temperature}
             onTemperatureChange={stageCtrl.setTemperature}
             unembeddingData={stageCtrl.mockData.unembeddingData}
+            phase={stagePhase}
           />
         );
       case 'sampling':
@@ -122,6 +200,7 @@ export function App() {
             topK={stageCtrl.topK}
             onTopKChange={stageCtrl.setTopK}
             prompt={stageCtrl.mockData.prompt}
+            phase={stagePhase}
           />
         );
       default:
@@ -141,7 +220,7 @@ export function App() {
       : visualizer.currentAnimStep || (microscope.steps.length > 0 ? microscope.steps[microscope.steps.length - 1] : null);
 
   return (
-    <div className="min-h-screen bg-[#090A0C] text-[#EDEDED] font-sans selection:bg-emerald-500/20 selection:text-emerald-300 flex flex-col items-center relative overflow-x-hidden">
+    <div className="min-h-screen bg-background text-text-main font-sans selection:bg-emerald-500/20 selection:text-emerald-700 dark:selection:text-emerald-300 flex flex-col items-center relative overflow-x-hidden transition-colors duration-200">
       {/* Background Ambience & Noise */}
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.025] mix-blend-overlay z-50"
@@ -149,21 +228,21 @@ export function App() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
         }}
       />
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_-20%,rgba(16,185,129,0.08),transparent)] z-0" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_-20%,rgba(5,150,105,0.05),transparent)] dark:bg-[radial-gradient(ellipse_70%_40%_at_50%_-20%,rgba(16,185,129,0.08),transparent)] z-0" />
 
       {/* Main Top Header Navigation */}
-      <header className="w-full max-w-7xl h-16 px-4 sm:px-6 flex items-center justify-between border-b border-white/[0.08] relative z-30 bg-[#090A0C]/90 backdrop-blur-md">
+      <header className="w-full max-w-7xl h-16 px-4 sm:px-6 flex items-center justify-between border-b border-border relative z-30 bg-background/90 backdrop-blur-md shadow-sm">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-black shadow-[0_0_16px_rgba(16,185,129,0.4)]">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white dark:text-black shadow-[0_0_16px_rgba(5,150,105,0.3)] dark:shadow-[0_0_16px_rgba(16,185,129,0.4)]">
             <Microscope className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
-              <h1 className="font-bold text-[14px] sm:text-[15px] tracking-tight text-white font-mono">
+              <h1 className="font-bold text-[14px] sm:text-[15px] tracking-tight text-text-main font-mono">
                 LLM Microscope
               </h1>
-              <span className="hidden sm:inline text-[9px] font-mono uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="hidden sm:inline text-[9px] font-mono uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 Observability Instrument
               </span>
             </div>
@@ -171,15 +250,15 @@ export function App() {
         </div>
 
         {/* Primary View Switcher: Walkthrough vs Live Loop */}
-        <div className="flex items-center p-1 rounded-xl bg-black/60 border border-white/[0.08] text-xs font-mono">
+        <div className="flex items-center p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm">
           <button
             onClick={() => setAppMode('architecture')}
             role="tab"
             aria-selected={appMode === 'architecture'}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all focus-ring ${
               appMode === 'architecture'
-                ? 'bg-emerald-500 text-black font-bold shadow-[0_0_14px_rgba(16,185,129,0.3)]'
-                : 'text-text-muted hover:text-white'
+                ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
+                : 'text-text-muted hover:text-text-main'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -194,8 +273,8 @@ export function App() {
             aria-selected={appMode === 'live_loop'}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all focus-ring ${
               appMode === 'live_loop'
-                ? 'bg-emerald-500 text-black font-bold shadow-[0_0_14px_rgba(16,185,129,0.3)]'
-                : 'text-text-muted hover:text-white'
+                ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
+                : 'text-text-muted hover:text-text-main'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -205,35 +284,40 @@ export function App() {
           </button>
         </div>
 
-        {/* Right Telemetry Badge */}
-        <div className="hidden lg:flex items-center gap-3">
-          {appMode === 'architecture' ? (
-            <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-              <span>GPT-2 Forward Pass (d=768)</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  microscope.isGenerating
-                    ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]'
-                    : microscope.isConnected
-                    ? 'bg-emerald-500'
-                    : 'bg-amber-400'
-                }`}
-              />
-              <span className="text-white font-medium">
-                {microscope.engineType === 'trace'
-                  ? 'Flight Recorder Trace'
-                  : microscope.engineType === 'webworker'
-                  ? 'ONNX LaMini 124M'
-                  : microscope.isLmStudioConnected
-                  ? 'LM Studio Connected'
-                  : 'LM Studio Disconnected'}
-              </span>
-            </div>
-          )}
+        {/* Right Section: Telemetry Badge + Theme Toggle */}
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
+            {appMode === 'architecture' ? (
+              <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-surface-raised px-3 py-1.5 rounded-lg border border-border">
+                <Cpu className="w-3.5 h-3.5 text-primary" />
+                <span>GPT-2 Forward Pass (d=768)</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-surface-raised px-3 py-1.5 rounded-lg border border-border">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    microscope.isGenerating
+                      ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]'
+                      : microscope.isConnected
+                      ? 'bg-emerald-500'
+                      : 'bg-amber-400'
+                  }`}
+                />
+                <span className="text-text-main font-medium">
+                  {microscope.engineType === 'trace'
+                    ? 'Flight Recorder Trace'
+                    : microscope.engineType === 'webworker'
+                    ? 'ONNX LaMini 124M'
+                    : microscope.isLmStudioConnected
+                    ? 'LM Studio Connected'
+                    : 'LM Studio Disconnected'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Theme Toggle Button (Light / Dark / System) */}
+          <ThemeToggle />
         </div>
       </header>
 
@@ -255,17 +339,30 @@ export function App() {
             onToggleAutoPlay={stageCtrl.toggleAutoPlay}
             speed={stageCtrl.speed}
             onChangeSpeed={stageCtrl.setSpeed}
+            currentPhase={stageCtrl.currentPhase}
+            currentStagePhaseCount={stageCtrl.currentStagePhaseCount}
           />
+
+          {/* Screen Reader Autoplay Status */}
+          <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {stageCtrl.isAutoPlaying
+              ? `Auto-playing: Stage ${stageCtrl.activeStageIndex + 1} of 7, ${stageCtrl.currentStage.title}, phase ${stageCtrl.currentPhase + 1} of ${stageCtrl.currentStagePhaseCount}`
+              : `Viewing: Stage ${stageCtrl.activeStageIndex + 1} of 7, ${stageCtrl.currentStage.title}`
+            }
+          </div>
 
           {/* Main Stage Content Container */}
           <main className="w-full max-w-7xl flex-1 flex flex-col p-4 sm:p-6 gap-8 relative z-10">
             {/* Stage Header Info */}
-            <section className="flex flex-col gap-2">
+            <section className="flex flex-col gap-2" ref={stageHeaderRef}>
               <StageHeader stage={stageCtrl.currentStage} />
             </section>
 
-            {/* Visual Stage Interactive Canvas */}
-            <section className="flex flex-col gap-6 w-full">
+            {/* Visual Stage Interactive Canvas — onPointerDown pauses autoplay */}
+            <section
+              className="flex flex-col gap-6 w-full"
+              onPointerDown={handleStageInteraction}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={stageCtrl.currentStage.id}
@@ -282,16 +379,19 @@ export function App() {
 
             {/* Architectural Explainer Card */}
             <section className="w-full">
-              <ExplainerCard stage={stageCtrl.currentStage} />
+              <ExplainerCard
+                stage={stageCtrl.currentStage}
+                visiblePoints={stageCtrl.isAutoPlaying ? Math.min(stageCtrl.currentPhase + 1, stageCtrl.currentStage.howItWorks.length) : undefined}
+              />
             </section>
 
             {/* Bottom Step Navigation Footer */}
-            <footer className="w-full flex items-center justify-between pt-6 pb-12 border-t border-white/[0.08]">
+            <footer className="w-full flex items-center justify-between pt-6 pb-12 border-t border-border">
               <button
                 onClick={stageCtrl.prevStage}
                 disabled={stageCtrl.activeStageIndex === 0}
                 aria-label="Previous step"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[12px] font-mono text-text-muted hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:pointer-events-none transition-all focus-ring"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-surface-raised text-[12px] font-mono text-text-muted hover:text-text-main hover:bg-surface-subtle disabled:opacity-30 disabled:pointer-events-none transition-all focus-ring shadow-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Previous Step</span>
@@ -305,7 +405,7 @@ export function App() {
                 <button
                   onClick={stageCtrl.nextStage}
                   aria-label={`Next step: ${nextStageObj?.title}`}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-black text-[12px] font-mono font-bold hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] focus-ring"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white dark:text-black text-[12px] font-mono font-bold hover:bg-emerald-700 dark:hover:bg-emerald-400 shadow-[0_0_20px_rgba(5,150,105,0.3)] dark:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] focus-ring"
                 >
                   <span>Next: {nextStageObj?.title.split('(')[0]}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -314,7 +414,7 @@ export function App() {
                 <button
                   onClick={stageCtrl.resetPipeline}
                   aria-label="Restart walkthrough from Stage 1"
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-black text-[12px] font-mono font-bold hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] focus-ring"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white dark:text-black text-[12px] font-mono font-bold hover:bg-emerald-700 dark:hover:bg-emerald-400 shadow-[0_0_20px_rgba(5,150,105,0.3)] dark:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] focus-ring"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Restart Walkthrough</span>
@@ -331,20 +431,20 @@ export function App() {
       {appMode === 'live_loop' && (
         <div className="w-full flex flex-col items-center">
           {/* Live Controller Bar */}
-          <section className="w-full bg-[#111317]/90 border-b border-white/[0.08] backdrop-blur-md sticky top-16 z-20 py-3 shadow-lg">
+          <section className="w-full bg-surface/90 border-b border-border backdrop-blur-md sticky top-0 z-20 py-3 shadow-md transition-colors duration-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
               {/* Engine Selector */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] font-mono uppercase text-text-muted tracking-wider">
                   Inference Engine:
                 </span>
-                <div className="flex items-center p-1 rounded-xl bg-black/60 border border-white/[0.08] text-[11px] font-mono">
+                <div className="flex items-center p-1 rounded-xl bg-surface-raised border border-border text-[11px] font-mono shadow-sm">
                   <button
                     onClick={() => microscope.setEngineType('trace')}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
                       microscope.engineType === 'trace'
-                        ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40'
-                        : 'text-text-muted hover:text-white'
+                        ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-500/40'
+                        : 'text-text-muted hover:text-text-main'
                     }`}
                   >
                     ✈️ Trace Replay (Mock)
@@ -354,8 +454,8 @@ export function App() {
                     onClick={() => microscope.setEngineType('webworker')}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
                       microscope.engineType === 'webworker'
-                        ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40'
-                        : 'text-text-muted hover:text-white'
+                        ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-500/40'
+                        : 'text-text-muted hover:text-text-main'
                     }`}
                   >
                     🧠 In-Browser ONNX
@@ -365,8 +465,8 @@ export function App() {
                     onClick={() => microscope.setEngineType('lmstudio')}
                     className={`px-2.5 py-1 rounded-lg transition-all ${
                       microscope.engineType === 'lmstudio'
-                        ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40'
-                        : 'text-text-muted hover:text-white'
+                        ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-500/40'
+                        : 'text-text-muted hover:text-text-main'
                     }`}
                   >
                     🔌 Local LM Studio
@@ -379,23 +479,23 @@ export function App() {
                     disabled={microscope.isCheckingConnection}
                     title="Refresh LM Studio connection"
                     aria-label="Refresh LM Studio connection"
-                    className="p-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-text-muted hover:text-white transition-colors focus-ring"
+                    className="p-1.5 rounded-lg border border-border bg-surface-raised text-text-muted hover:text-text-main transition-colors focus-ring"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${microscope.isCheckingConnection ? 'animate-spin text-emerald-400' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 ${microscope.isCheckingConnection ? 'animate-spin text-primary' : ''}`} />
                   </button>
                 )}
 
                 {microscope.engineType === 'lmstudio' && microscope.isLmStudioConnected && microscope.models.length > 0 && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/50 border border-emerald-500/30 text-[11px] font-mono">
-                    <span className="text-emerald-400 font-bold hidden sm:inline">Model:</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-raised border border-emerald-500/30 text-[11px] font-mono">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold hidden sm:inline">Model:</span>
                     <select
                       value={microscope.selectedModel}
                       onChange={(e) => microscope.setSelectedModel(e.target.value)}
                       aria-label="Select LM Studio model"
-                      className="bg-transparent text-emerald-300 font-semibold focus:outline-none cursor-pointer"
+                      className="bg-transparent text-emerald-800 dark:text-emerald-300 font-semibold focus:outline-none cursor-pointer"
                     >
                       {microscope.models.map((m) => (
-                        <option key={m} value={m} className="bg-[#111317] text-white">
+                        <option key={m} value={m} className="bg-surface text-text-main">
                           {m}
                         </option>
                       ))}
@@ -413,7 +513,7 @@ export function App() {
                     onChange={(e) => microscope.setPrompt(e.target.value)}
                     disabled={microscope.isGenerating}
                     placeholder="Enter prompt for live next-token prediction..."
-                    className="w-full bg-black/60 border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-text-muted/60 focus-ring"
+                    className="w-full bg-surface-raised border border-border rounded-xl px-3.5 py-2 text-xs font-mono text-text-main placeholder-text-muted/60 focus-ring shadow-inner"
                   />
                 </div>
 
@@ -429,7 +529,7 @@ export function App() {
                   <button
                     onClick={microscope.startGeneration}
                     disabled={!microscope.prompt.trim() || !microscope.isConnected}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 text-black font-mono font-bold text-xs hover:bg-emerald-400 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-[0_0_16px_rgba(16,185,129,0.3)]"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white dark:text-black font-mono font-bold text-xs hover:bg-emerald-700 dark:hover:bg-emerald-400 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-[0_0_16px_rgba(5,150,105,0.3)] dark:shadow-[0_0_16px_rgba(16,185,129,0.3)]"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Generate</span>
@@ -441,8 +541,8 @@ export function App() {
             {/* LM Studio Connection Helper / Web Worker Loading Alert */}
             {microscope.engineType === 'lmstudio' && !microscope.isLmStudioConnected && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">
-                <div className="flex items-center gap-2 text-[11px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                <div className="flex items-center gap-2 text-[11px] font-mono text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span>
                     LM Studio is not detected at <code>http://127.0.0.1:1234</code>. Start LM Studio with CORS enabled, or toggle to <strong>Trace Replay</strong> or <strong>In-Browser ONNX</strong> for instant generation!
                   </span>
@@ -452,8 +552,8 @@ export function App() {
 
             {microscope.engineType === 'webworker' && microscope.loadingProgress && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">
-                <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-lg">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0 text-cyan-400" />
+                <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-800 dark:text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-lg">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0 text-cyan-600 dark:text-cyan-400" />
                   <span>
                     Loading ONNX model weights into browser: {microscope.loadingProgress.file} ({microscope.loadingProgress.progress.toFixed(0)}%)
                   </span>

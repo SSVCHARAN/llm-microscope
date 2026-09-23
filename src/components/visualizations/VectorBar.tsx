@@ -20,49 +20,27 @@ export const VectorBar: React.FC<VectorBarProps> = ({
 }) => {
   const displayedDims = vector.slice(0, maxVisibleDims);
 
-  const getDimStyle = (val: number) => {
-    // Range roughly -1.5 to +1.5
-    const intensity = Math.min(1, Math.max(0.2, Math.abs(val) / 1.5));
+  const getDimClasses = (val: number) => {
     if (val >= 0) {
       if (colorTheme === 'cyan') {
-        return {
-          backgroundColor: `rgba(6, 182, 212, ${0.15 + intensity * 0.45})`,
-          borderColor: 'rgba(6, 182, 212, 0.45)',
-          color: '#a5f3fc'
-        };
+        return 'bg-cyan-500/15 border-cyan-500/40 text-cyan-800 dark:text-cyan-200 shadow-sm';
       }
       if (colorTheme === 'amber') {
-        return {
-          backgroundColor: `rgba(245, 158, 11, ${0.15 + intensity * 0.45})`,
-          borderColor: 'rgba(245, 158, 11, 0.45)',
-          color: '#fde68a'
-        };
+        return 'bg-amber-500/15 border-amber-500/40 text-amber-850 text-amber-900 dark:text-amber-200 shadow-sm';
       }
       if (colorTheme === 'purple') {
-        return {
-          backgroundColor: `rgba(168, 85, 247, ${0.15 + intensity * 0.45})`,
-          borderColor: 'rgba(168, 85, 247, 0.45)',
-          color: '#e9d5ff'
-        };
+        return 'bg-purple-500/15 border-purple-500/40 text-purple-800 dark:text-purple-200 shadow-sm';
       }
-      return {
-        backgroundColor: `rgba(16, 185, 129, ${0.15 + intensity * 0.45})`,
-        borderColor: 'rgba(16, 185, 129, 0.45)',
-        color: '#a7f3d0'
-      };
+      return 'bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-200 shadow-sm';
     } else {
-      return {
-        backgroundColor: `rgba(244, 63, 94, ${0.15 + intensity * 0.45})`,
-        borderColor: 'rgba(244, 63, 94, 0.45)',
-        color: '#fecdd3'
-      };
+      return 'bg-rose-500/15 border-rose-500/40 text-rose-800 dark:text-rose-200 shadow-sm';
     }
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-surface border border-surface-border">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-surface border border-border transition-colors duration-200">
       <div className="flex flex-col w-40 shrink-0">
-        <span className="text-[12px] font-mono font-semibold text-text tracking-tight">
+        <span className="text-[12px] font-mono font-semibold text-text-main tracking-tight">
           {label}
         </span>
         {sublabel && (
@@ -77,9 +55,16 @@ export const VectorBar: React.FC<VectorBarProps> = ({
         {displayedDims.map((val, idx) => (
           <motion.div
             key={idx}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 25,
+              delay: idx * 0.04
+            }}
             whileHover={{ scale: 1.15, y: -2 }}
-            style={getDimStyle(val)}
-            className="px-2 py-1 rounded border font-mono text-[10px] text-center min-w-[46px] shadow-sm transition-all select-none cursor-default font-semibold"
+            className={`px-2 py-1 rounded border font-mono text-[10px] text-center min-w-[46px] transition-all select-none cursor-default font-semibold ${getDimClasses(val)}`}
             title={`Coordinate Dimension d_${idx}: ${val.toFixed(4)}`}
             aria-label={`Dimension ${idx}: ${val.toFixed(4)}`}
           >

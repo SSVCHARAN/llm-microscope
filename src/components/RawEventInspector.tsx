@@ -34,25 +34,25 @@ export function RawEventInspector({ events, onClear }: Props) {
   };
 
   const getBadgeColor = (type: string) => {
-    if (type.includes('error')) return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
-    if (type.includes('chunk')) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-    if (type.includes('usage') || type.includes('complete')) return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
-    return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    if (type.includes('error')) return 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30';
+    if (type.includes('chunk')) return 'bg-primary-500/15 text-emerald-800 dark:text-emerald-300 border-primary-500/30';
+    if (type.includes('usage') || type.includes('complete')) return 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30';
+    return 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30';
   };
 
   return (
-    <div className="bg-[#111317] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col shadow-xl font-sans">
+    <div className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col shadow-sm dark:shadow-xl font-sans">
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        className="flex items-center justify-between p-4 bg-transparent hover:bg-white/[0.02] transition-colors text-left w-full focus-ring cursor-pointer"
+        className="flex items-center justify-between p-4 bg-transparent hover:bg-surface-raised transition-colors text-left w-full focus-ring cursor-pointer"
       >
         <div className="flex items-center gap-2.5">
-          <Terminal className="w-4 h-4 text-emerald-400" />
-          <h3 className="font-mono font-bold text-xs uppercase tracking-wider text-white">
+          <Terminal className="w-4 h-4 text-primary-500" />
+          <h3 className="font-mono font-bold text-xs uppercase tracking-wider text-text-main">
             Raw SSE & Engine Event Inspector
           </h3>
-          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold">
+          <span className="bg-primary-500/10 text-primary-600 dark:text-emerald-400 border border-primary-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold">
             {events.length} frames
           </span>
         </div>
@@ -63,9 +63,9 @@ export function RawEventInspector({ events, onClear }: Props) {
       </button>
 
       {isOpen && (
-        <div className="flex flex-col border-t border-white/[0.06] bg-black/40">
+        <div className="flex flex-col border-t border-border-subtle bg-surface-raised">
           {/* Action & Filter Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-white/[0.06] bg-black/60">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-border-subtle bg-surface-subtle">
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto text-[10px] font-mono">
               <Filter className="w-3.5 h-3.5 text-text-muted shrink-0 mr-1" />
@@ -75,8 +75,8 @@ export function RawEventInspector({ events, onClear }: Props) {
                   onClick={() => setFilterType(type)}
                   className={`px-2 py-0.5 rounded-md border transition-all ${
                     filterType === type
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
-                      : 'bg-white/[0.03] text-text-muted border-white/[0.06] hover:text-white'
+                      ? 'bg-primary-500/20 text-emerald-800 dark:text-emerald-300 border-primary-500/40 font-bold'
+                      : 'bg-surface text-text-muted border-border hover:text-text-main'
                   }`}
                 >
                   {type}
@@ -89,9 +89,9 @@ export function RawEventInspector({ events, onClear }: Props) {
               <button
                 onClick={handleCopy}
                 aria-label="Copy All Events JSON"
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/[0.04] hover:bg-white/[0.08] text-text-muted hover:text-white text-[10px] font-mono border border-white/[0.08] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-surface hover:bg-surface-raised text-text-muted hover:text-text-main text-[10px] font-mono border border-border transition-colors"
               >
-                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copied ? <Check className="w-3 h-3 text-primary-500" /> : <Copy className="w-3 h-3" />}
                 <span>{copied ? 'Copied' : 'Copy JSON'}</span>
               </button>
 
@@ -99,7 +99,7 @@ export function RawEventInspector({ events, onClear }: Props) {
                 <button
                   onClick={onClear}
                   aria-label="Clear Event History"
-                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-[10px] font-mono border border-rose-500/20 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-mono border border-rose-500/20 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   <span>Clear</span>
@@ -109,7 +109,7 @@ export function RawEventInspector({ events, onClear }: Props) {
           </div>
 
           {/* Event Stream List */}
-          <div className="p-4 h-72 overflow-y-auto space-y-2.5 scrollbar-hide font-mono">
+          <div className="p-4 h-72 overflow-y-auto space-y-2.5 scrollbar-hide font-mono bg-surface-raised">
             {filteredEvents.length === 0 ? (
               <div className="text-text-muted text-xs italic py-8 text-center">
                 No events recorded. Start generation or send a prompt to stream raw SSE frames.
@@ -118,7 +118,7 @@ export function RawEventInspector({ events, onClear }: Props) {
               filteredEvents.map((ev) => (
                 <div
                   key={ev.id}
-                  className="text-xs border-l-2 border-emerald-500/40 pl-3 py-1 bg-white/[0.01] rounded-r hover:bg-white/[0.03] transition-colors"
+                  className="text-xs border-l-2 border-primary-500/50 pl-3 py-1 bg-surface/60 rounded-r hover:bg-surface transition-colors"
                 >
                   <div className="flex items-center gap-2.5 text-[10px] text-text-muted mb-1">
                     <span>{new Date(ev.timestamp).toISOString().split('T')[1].replace('Z', '')}</span>
