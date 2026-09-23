@@ -35,7 +35,7 @@ export function RawEventInspector({ events, onClear }: Props) {
 
   const getBadgeColor = (type: string) => {
     if (type.includes('error')) return 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30';
-    if (type.includes('chunk')) return 'bg-primary-500/15 text-emerald-800 dark:text-emerald-300 border-primary-500/30';
+    if (type.includes('chunk')) return 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30';
     if (type.includes('usage') || type.includes('complete')) return 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30';
     return 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30';
   };
@@ -47,17 +47,17 @@ export function RawEventInspector({ events, onClear }: Props) {
         aria-expanded={isOpen}
         className="flex items-center justify-between p-4 bg-transparent hover:bg-surface-raised transition-colors text-left w-full focus-ring cursor-pointer"
       >
-        <div className="flex items-center gap-2.5">
-          <Terminal className="w-4 h-4 text-primary-500" />
-          <h3 className="font-mono font-bold text-xs uppercase tracking-wider text-text-main">
-            Raw SSE & Engine Event Inspector
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Terminal className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <h3 className="font-mono font-bold text-xs uppercase tracking-wider text-text-main truncate">
+            Raw SSE & Events
           </h3>
-          <span className="bg-primary-500/10 text-primary-600 dark:text-emerald-400 border border-primary-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold">
+          <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold shrink-0">
             {events.length} frames
           </span>
         </div>
-        <div className="flex items-center gap-2 text-text-muted text-xs font-mono">
-          <span>{isOpen ? 'Collapse' : 'Expand Stream Log'}</span>
+        <div className="flex items-center gap-1.5 text-text-muted text-xs font-mono shrink-0 ml-2">
+          <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
@@ -65,46 +65,52 @@ export function RawEventInspector({ events, onClear }: Props) {
       {isOpen && (
         <div className="flex flex-col border-t border-border-subtle bg-surface-raised">
           {/* Action & Filter Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-border-subtle bg-surface-subtle">
+          <div className="flex flex-col gap-2 p-3 border-b border-border-subtle bg-surface-subtle">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-text-muted">
+                <Filter className="w-3.5 h-3.5 shrink-0 text-text-muted" />
+                <span>Filter Events</span>
+              </div>
+
+              {/* Copy and Clear */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopy}
+                  aria-label="Copy All Events JSON"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-surface hover:bg-surface-raised text-text-muted hover:text-text-main text-[10px] font-mono border border-border transition-colors shadow-sm"
+                >
+                  {copied ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+                </button>
+
+                {onClear && (
+                  <button
+                    onClick={onClear}
+                    aria-label="Clear Event History"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-mono border border-rose-500/20 transition-colors shadow-sm"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Clear</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto text-[10px] font-mono">
-              <Filter className="w-3.5 h-3.5 text-text-muted shrink-0 mr-1" />
-              {eventTypes.slice(0, 6).map((type) => (
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono pt-1 border-t border-border-subtle/50">
+              {eventTypes.map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
-                  className={`px-2 py-0.5 rounded-md border transition-all ${
+                  className={`px-2 py-0.5 rounded-md border whitespace-nowrap transition-all ${
                     filterType === type
-                      ? 'bg-primary-500/20 text-emerald-800 dark:text-emerald-300 border-primary-500/40 font-bold'
+                      ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40 font-bold'
                       : 'bg-surface text-text-muted border-border hover:text-text-main'
                   }`}
                 >
                   {type}
                 </button>
               ))}
-            </div>
-
-            {/* Copy and Clear */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopy}
-                aria-label="Copy All Events JSON"
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-surface hover:bg-surface-raised text-text-muted hover:text-text-main text-[10px] font-mono border border-border transition-colors"
-              >
-                {copied ? <Check className="w-3 h-3 text-primary-500" /> : <Copy className="w-3 h-3" />}
-                <span>{copied ? 'Copied' : 'Copy JSON'}</span>
-              </button>
-
-              {onClear && (
-                <button
-                  onClick={onClear}
-                  aria-label="Clear Event History"
-                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-mono border border-rose-500/20 transition-colors"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Clear</span>
-                </button>
-              )}
             </div>
           </div>
 

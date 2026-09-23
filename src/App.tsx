@@ -255,7 +255,7 @@ export function App() {
             onClick={() => setAppMode('architecture')}
             role="tab"
             aria-selected={appMode === 'architecture'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all focus-ring ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all focus-ring ${
               appMode === 'architecture'
                 ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
                 : 'text-text-muted hover:text-text-main'
@@ -264,14 +264,14 @@ export function App() {
             <Layers className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Architecture Deep-Dive</span>
             <span className="sm:hidden">Architecture</span>
-            <span className="text-[10px] opacity-75 hidden md:inline">(7 Stages)</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hidden md:inline font-mono">7 Stages</span>
           </button>
 
           <button
             onClick={() => setAppMode('live_loop')}
             role="tab"
             aria-selected={appMode === 'live_loop'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all focus-ring ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all focus-ring ${
               appMode === 'live_loop'
                 ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
                 : 'text-text-muted hover:text-text-main'
@@ -280,7 +280,7 @@ export function App() {
             <Zap className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Live Generation Loop</span>
             <span className="sm:hidden">Live Loop</span>
-            <span className="text-[10px] opacity-75 hidden md:inline">(LM Studio / Trace)</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hidden md:inline font-mono">LM Studio / Trace</span>
           </button>
         </div>
 

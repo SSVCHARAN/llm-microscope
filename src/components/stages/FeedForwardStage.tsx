@@ -156,7 +156,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
               <code className="text-amber-800 dark:text-amber-300 font-bold">x₃ = +1.14</code>, &nbsp;
               <code className="text-amber-800 dark:text-amber-300 font-bold">x₄ = -0.88</code>.
               <br />
-              <strong>That is all $x_1 \dots x_4$ are:</strong> the 4 coordinate numbers of this token entering the network!
+              <strong>That is all (x₁ … x₄) are:</strong> the 4 coordinate numbers of this token entering the network!
             </p>
           </div>
         </div>
