@@ -39,7 +39,7 @@ export const VectorBar: React.FC<VectorBarProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-surface border border-border transition-colors duration-200">
-      <div className="flex flex-col w-40 shrink-0">
+      <div className="flex flex-col w-full sm:w-44 shrink-0">
         <span className="text-[12px] font-mono font-semibold text-text-main tracking-tight">
           {label}
         </span>
@@ -51,7 +51,7 @@ export const VectorBar: React.FC<VectorBarProps> = ({
       </div>
 
       {/* Dimensions bar */}
-      <div className="flex items-center gap-1.5 flex-wrap flex-1 justify-end" role="group" aria-label={`Vector components for ${label}`}>
+      <div className="flex items-center gap-1.5 flex-wrap flex-1 justify-start sm:justify-end" role="group" aria-label={`Vector components for ${label}`}>
         {displayedDims.map((val, idx) => (
           <motion.div
             key={idx}

@@ -8,7 +8,19 @@ export type AutoPlaySpeed = 'slow' | 'normal' | 'fast';
 export { STAGE_PHASE_COUNTS };
 
 export function useStageController() {
-  const [activeStageIndex, setActiveStageIndex] = useState<number>(0);
+  const [activeStageIndex, setActiveStageIndex] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const stg = params.get('stage');
+      if (stg !== null) {
+        const num = parseInt(stg, 10);
+        if (!isNaN(num) && num >= 0 && num < STAGES_CONFIG.length) return num;
+        const idx = STAGES_CONFIG.findIndex((s) => s.id === stg);
+        if (idx !== -1) return idx;
+      }
+    }
+    return 0;
+  });
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
   const [speed, setSpeed] = useState<AutoPlaySpeed>('normal');
   const [currentPhase, setCurrentPhase] = useState<number>(0);

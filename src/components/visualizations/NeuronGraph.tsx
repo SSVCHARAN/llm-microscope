@@ -92,36 +92,42 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
   return (
     <div className="flex flex-col xl:flex-row gap-6 items-start w-full font-sans">
       {/* SVG Canvas Container */}
-      <div className="flex-1 w-full rounded-2xl border border-border bg-surface p-5 shadow-sm dark:shadow-2xl flex flex-col items-center transition-colors duration-200">
+      <div className="flex-1 w-full rounded-2xl border border-border bg-surface p-3.5 sm:p-5 shadow-sm dark:shadow-2xl flex flex-col items-center transition-colors duration-200">
         {/* Layer Header Labels with Plain-English Names */}
-        <div className="w-full grid grid-cols-3 text-center pb-3 border-b border-border-subtle mb-2">
+        <div className="w-full grid grid-cols-3 text-center pb-3 border-b border-border-subtle mb-2 gap-1">
           {/* Layer 0 */}
           <div className="flex flex-col items-center">
-            <span className="text-[11px] font-mono uppercase font-bold text-amber-700 dark:text-amber-400">
-              1. Input Layer (d=4)
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase font-bold text-amber-700 dark:text-amber-400">
+              <span className="hidden sm:inline">1. Input Layer (d=4)</span>
+              <span className="sm:hidden">1. Input (4-D)</span>
             </span>
             <span className="text-[9px] font-mono text-text-muted">
-              Token Coordinates from Stage 4
+              <span className="hidden sm:inline">Token Coordinates from Stage 4</span>
+              <span className="sm:hidden">Token Coords</span>
             </span>
           </div>
 
           {/* Layer 1 */}
           <div className="flex flex-col items-center">
-            <span className="text-[11px] font-mono uppercase font-bold text-emerald-700 dark:text-emerald-400">
-              2. Hidden MLP (4×d = 8) + GELU
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase font-bold text-emerald-700 dark:text-emerald-400">
+              <span className="hidden sm:inline">2. Hidden MLP (4×d = 8) + GELU</span>
+              <span className="sm:hidden">2. Hidden (8-D)</span>
             </span>
             <span className="text-[9px] font-mono text-text-muted">
-              Expanded Knowledge Feature Detectors
+              <span className="hidden sm:inline">Expanded Knowledge Feature Detectors</span>
+              <span className="sm:hidden">GELU Features</span>
             </span>
           </div>
 
           {/* Layer 2 */}
           <div className="flex flex-col items-center">
-            <span className="text-[11px] font-mono uppercase font-bold text-cyan-700 dark:text-cyan-400">
-              3. Output Layer (d=4)
+            <span className="text-[10px] sm:text-[11px] font-mono uppercase font-bold text-cyan-700 dark:text-cyan-400">
+              <span className="hidden sm:inline">3. Output Layer (d=4)</span>
+              <span className="sm:hidden">3. Output (4-D)</span>
             </span>
             <span className="text-[9px] font-mono text-text-muted">
-              Reasoning Updates for Stage 6 Logits
+              <span className="hidden sm:inline">Reasoning Updates for Stage 6 Logits</span>
+              <span className="sm:hidden">Updates for Logits</span>
             </span>
           </div>
         </div>

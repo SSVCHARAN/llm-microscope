@@ -57,15 +57,15 @@ export const EmbeddingStage: React.FC<EmbeddingStageProps> = ({ tokens, embeddin
       </div>
 
       {/* Vector Math: Token Embedding + Positional Encoding = Combined Representation */}
-      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 shadow-sm dark:shadow-2xl transition-colors duration-200">
-        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 sm:p-6 shadow-sm dark:shadow-2xl transition-colors duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-border-subtle pb-3">
           <div className="flex items-center gap-2">
-            <Compass className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <Compass className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span className="text-[12px] font-mono uppercase tracking-wider text-text-main font-semibold">
               Vector Geometry Formulation: x_i = W_E[token] + PE[pos]
             </span>
           </div>
-          <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-medium">
+          <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-medium shrink-0">
             Showing first 8 of 768 dimensions
           </span>
         </div>

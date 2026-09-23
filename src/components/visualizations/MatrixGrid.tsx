@@ -47,7 +47,7 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface-raised p-4 shadow-sm dark:shadow-inner transition-colors duration-200">
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface-raised p-3.5 sm:p-4 shadow-sm dark:shadow-inner transition-colors duration-200 w-full max-w-full min-w-0 overflow-hidden">
       {(title || subtitle) && (
         <div className="flex flex-col gap-0.5 mb-2">
           {title && <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-text-main">{title}</span>}
@@ -55,15 +55,16 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
         </div>
       )}
 
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="inline-block min-w-full">
+      <div className="overflow-x-auto w-full max-w-full touch-pan-x pb-1.5 custom-scrollbar">
+        <div className="inline-block min-w-max pb-1">
           {/* Column labels */}
           {colLabels && (
-            <div className="flex pl-16 mb-1 gap-1.5">
+            <div className="flex mb-1 gap-1.5">
+              {rowLabels && <div className="w-10 sm:w-14 shrink-0" />}
               {colLabels.map((lbl, cIdx) => (
                 <div
                   key={cIdx}
-                  className={`w-14 text-center text-[10px] font-mono truncate transition-colors ${
+                  className={`w-14 shrink-0 text-center text-[10px] font-mono truncate transition-colors ${
                     highlightCol === cIdx ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-text-muted'
                   }`}
                   title={lbl}
@@ -83,7 +84,7 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
                   {/* Row Label */}
                   {rowLabels && (
                     <div
-                      className={`w-14 text-right pr-2 text-[10px] font-mono truncate shrink-0 transition-colors ${
+                      className={`w-10 sm:w-14 shrink-0 text-right pr-2 text-[10px] font-mono truncate transition-colors ${
                         isRowActive ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-text-secondary'
                       }`}
                       title={rowLabels[rIdx]}
@@ -102,7 +103,7 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: (rIdx * numCols + cIdx) * 0.015 }}
-                          className={`w-14 h-9 rounded-md border flex items-center justify-center font-mono text-[11px] transition-all select-none ${
+                          className={`w-14 shrink-0 h-9 rounded-md border flex items-center justify-center font-mono text-[11px] transition-all select-none ${
                             getCellBg(val, isRowActive)
                           } ${isRowActive && isColActive ? 'ring-2 ring-emerald-500 dark:ring-white shadow-[0_0_12px_rgba(5,150,105,0.3)] dark:shadow-[0_0_12px_rgba(255,255,255,0.4)]' : ''}`}
                         >

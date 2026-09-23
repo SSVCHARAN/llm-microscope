@@ -46,35 +46,43 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
       {/* Grid container */}
-      <div className="flex flex-col gap-3 bg-surface border border-border rounded-xl p-5 shadow-sm dark:shadow-2xl transition-colors duration-200">
-        <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-mono uppercase tracking-wider text-text-main font-semibold">
+      <div className="flex flex-col gap-3 bg-surface border border-border rounded-xl p-3.5 sm:p-5 shadow-sm dark:shadow-2xl transition-colors duration-200 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between pb-2 border-b border-border-subtle gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-[11px] font-mono uppercase tracking-wider text-text-main font-semibold truncate">
               {activeHeadName}
             </span>
           </div>
-          <span className="text-[10px] font-mono text-text-muted">
-            Softmax(Q · K^T / √d_k)
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 sm:hidden flex items-center gap-1 font-medium">
+              <span>⇄</span>
+              <span>Scroll</span>
+            </span>
+            <span className="text-[10px] font-mono text-text-muted hidden sm:inline">
+              Softmax(Q · K^T / √d_k)
+            </span>
+          </div>
         </div>
 
-        {/* Column Headers (Keys) */}
-        <div className="overflow-x-auto">
-          <div className="inline-block">
-            <div className="flex items-center pl-24 mb-2 gap-2">
-              <div className="text-[10px] font-mono uppercase text-text-muted pr-2">Keys →</div>
+        {/* Column Headers (Keys) & Matrix Rows */}
+        <div className="overflow-x-auto w-full max-w-full touch-pan-x pb-2 custom-scrollbar">
+          <div className="inline-block min-w-max pb-1">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-20 sm:w-24 shrink-0 text-right pr-3 text-[10px] font-mono uppercase text-text-muted flex items-center justify-end">
+                Keys →
+              </div>
               {tokens.map((t, idx) => (
                 <div
                   key={t.id}
-                  className={`w-14 text-center font-mono text-[11px] px-1 py-0.5 rounded transition-colors ${
+                  className={`w-14 shrink-0 text-center font-mono text-[11px] px-1 py-0.5 rounded transition-colors ${
                     activeCol === idx ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 font-bold border border-emerald-500/40' : 'text-text-secondary'
                   }`}
                 >
                   {t.display}
                 </div>
               ))}
-              <div className="w-16 text-center text-[10px] font-mono text-text-muted">
+              <div className="w-16 shrink-0 text-center text-[10px] font-mono text-text-muted">
                 ∑ Row
               </div>
             </div>
@@ -89,7 +97,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                   <div key={qToken.id} className="flex items-center gap-2">
                     {/* Row Label (Query) */}
                     <div
-                      className={`w-24 text-right pr-3 font-mono text-[11px] truncate flex items-center justify-end gap-1.5 ${
+                      className={`w-20 sm:w-24 shrink-0 text-right pr-3 font-mono text-[11px] truncate flex items-center justify-end gap-1.5 ${
                         isCurrentRow ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-text-secondary'
                       }`}
                     >
@@ -122,7 +130,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                               : `Attention weight from "${qToken.display}" to "${kToken.display}": ${(weight * 100).toFixed(0)}%`
                           }
                           aria-pressed={isSelected}
-                          className={`w-14 h-11 rounded-lg border flex flex-col items-center justify-center font-mono text-[11px] transition-all relative focus-ring cursor-pointer ${
+                          className={`w-14 shrink-0 h-11 rounded-lg border flex flex-col items-center justify-center font-mono text-[11px] transition-all relative focus-ring cursor-pointer ${
                             getCellColor(weight, isMasked)
                           } ${
                             isSelected ? 'ring-2 ring-emerald-600 dark:ring-white shadow-[0_0_16px_rgba(5,150,105,0.35)] dark:shadow-[0_0_16px_rgba(255,255,255,0.4)] z-10' : ''
@@ -143,7 +151,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                     })}
 
                     {/* Row Sum (Softmax constraint: must equal 100%) */}
-                    <div className="w-16 text-center font-mono text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] border border-emerald-500/20 py-1 rounded font-bold">
+                    <div className="w-16 shrink-0 text-center font-mono text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-500/[0.08] border border-emerald-500/20 py-1 rounded font-bold">
                       {(rowSum * 100).toFixed(0)}%
                     </div>
                   </div>
@@ -153,7 +161,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 pt-3 border-t border-border-subtle text-[11px] text-text-muted font-mono">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-3 border-t border-border-subtle text-[11px] text-text-muted font-mono">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-emerald-600 dark:bg-emerald-500/80" />
             <span>High Attention (&gt;70%)</span>
@@ -170,7 +178,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
       </div>
 
       {/* Interactive Inspector Sidebar for Selected Cell */}
-      <div className="flex-1 w-full bg-surface border border-border rounded-xl p-5 flex flex-col gap-4 shadow-sm dark:shadow-xl transition-colors duration-200">
+      <div className="flex-1 w-full max-w-full min-w-0 bg-surface border border-border rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm dark:shadow-xl transition-colors duration-200">
         <div className="flex items-center justify-between border-b border-border-subtle pb-3">
           <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-semibold">
             Connection Inspector

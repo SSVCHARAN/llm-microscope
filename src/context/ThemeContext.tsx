@@ -17,9 +17,9 @@ const THEME_STORAGE_KEY = 'llm-microscope-theme';
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'system';
   try {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem('theme');
     if (saved === 'light' || saved === 'dark' || saved === 'system') {
-      return saved;
+      return saved as Theme;
     }
   } catch {
     // Ignore localStorage errors
@@ -76,6 +76,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeState(newTheme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+      localStorage.setItem('theme', newTheme);
     } catch {
       // Ignore localStorage errors
     }

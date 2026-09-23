@@ -182,7 +182,7 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
       </div>
 
       {/* Primary Mathematical Operations Section */}
-      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 shadow-sm dark:shadow-2xl transition-colors duration-200">
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-3.5 sm:p-6 shadow-sm dark:shadow-2xl transition-colors duration-200 w-full max-w-full min-w-0 overflow-hidden">
         {/* Header & Sub-Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4">
           <div className="flex flex-col gap-1">
@@ -195,45 +195,48 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
           </div>
 
           {/* Projection Type Switcher Tabs */}
-          <div className="flex items-center p-1 rounded-lg bg-surface-raised border border-border gap-1 self-start sm:self-auto shadow-sm" role="tablist" aria-label="Projection Type Tabs">
+          <div className="flex items-center p-1 rounded-lg bg-surface-raised border border-border gap-1 self-start sm:self-auto shadow-sm overflow-x-auto max-w-full" role="tablist" aria-label="Projection Type Tabs">
             <button
               role="tab"
               aria-selected={isQ}
               aria-label="Query projection tab"
               onClick={() => setSelectedProjection('q')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring whitespace-nowrap ${
                 isQ
                   ? 'bg-indigo-600 text-white font-bold shadow-[0_0_12px_rgba(99,102,241,0.4)]'
                   : 'text-text-muted hover:text-text-main'
               }`}
             >
-              Query (x · W_Q)
+              <span className="hidden sm:inline">Query (x · W_Q)</span>
+              <span className="sm:hidden">Query (Q)</span>
             </button>
             <button
               role="tab"
               aria-selected={isK}
               aria-label="Key projection tab"
               onClick={() => setSelectedProjection('k')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring whitespace-nowrap ${
                 isK
                   ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_12px_rgba(5,150,105,0.4)] dark:shadow-[0_0_12px_rgba(16,185,129,0.4)]'
                   : 'text-text-muted hover:text-text-main'
               }`}
             >
-              Key (x · W_K)
+              <span className="hidden sm:inline">Key (x · W_K)</span>
+              <span className="sm:hidden">Key (K)</span>
             </button>
             <button
               role="tab"
               aria-selected={isV}
               aria-label="Value projection tab"
               onClick={() => setSelectedProjection('v')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring whitespace-nowrap ${
                 isV
                   ? 'bg-cyan-600 text-white dark:text-black font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]'
                   : 'text-text-muted hover:text-text-main'
               }`}
             >
-              Value (x · W_V)
+              <span className="hidden sm:inline">Value (x · W_V)</span>
+              <span className="sm:hidden">Value (V)</span>
             </button>
           </div>
         </div>

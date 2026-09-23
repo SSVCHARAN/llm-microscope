@@ -44,7 +44,7 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
         {recent.map((s, i) => (
           <span
             key={i}
-            className="text-text-main bg-surface hover:bg-surface-subtle transition-colors px-2 py-1 rounded border border-border"
+            className="text-text-main bg-surface-raised hover:bg-surface-subtle transition-colors px-2 py-0.5 rounded text-xs font-mono"
           >
             {s.tokenText.replace(/\n/g, '↵') || '␣'}
           </span>
@@ -53,7 +53,7 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
           <motion.span
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-emerald-800 dark:text-emerald-300 font-bold bg-primary-500/20 px-2 py-1 rounded border border-primary-500/40 shadow-sm dark:shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+            className="text-emerald-800 dark:text-emerald-300 font-bold bg-primary-500/20 px-2 py-0.5 rounded border border-primary-500/40 shadow-sm dark:shadow-[0_0_12px_rgba(16,185,129,0.3)]"
           >
             {step.tokenText.replace(/\n/g, '↵') || '␣'}
           </motion.span>
@@ -93,13 +93,13 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
   };
 
   return (
-    <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col gap-0 shadow-sm dark:shadow-2xl relative overflow-hidden min-h-[700px] font-sans">
+    <div className="bg-surface border border-border rounded-2xl p-3.5 sm:p-6 flex flex-col gap-0 shadow-sm dark:shadow-2xl relative overflow-hidden min-h-0 sm:min-h-[640px] font-sans">
       {/* 1. CONTEXT BUFFER */}
       <div className={`flex flex-col z-10 transition-all duration-500 ${isContext ? 'opacity-100' : 'opacity-65'}`}>
         <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
           {getStatusIcon(isContext, !isContext)}
           <span className={isContext ? 'text-text-main font-bold' : 'text-text-muted'}>1. Context Buffer</span>
-          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Input tokens accumulated so far</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase hidden sm:inline">Input tokens accumulated so far</span>
         </div>
         <div
           className={`transition-all duration-500 rounded-xl p-1.5 ${
@@ -144,10 +144,10 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
 
             {/* Attention / MLP layers */}
             <div
-              className={`w-full max-w-[320px] border rounded-lg p-2.5 text-center flex flex-col gap-1.5 transition-all duration-500 ${
+              className={`w-full max-w-[320px] rounded-lg p-2.5 text-center flex flex-col gap-1.5 transition-all duration-500 ${
                 isModel && stage === 'inference'
-                  ? 'border-primary-500/50 bg-primary-500/10 shadow-sm dark:shadow-[0_0_20px_rgba(16,185,129,0.15)]'
-                  : 'border-border bg-surface'
+                  ? 'border border-primary-500/50 bg-primary-500/10 shadow-sm dark:shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                  : 'bg-surface'
               }`}
             >
               <div className="flex items-center justify-between px-1">
@@ -212,10 +212,19 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
                 </div>
               )}
               <div className="grid grid-cols-12 text-[10px] text-text-muted uppercase font-mono tracking-wider border-b border-border pb-1.5 px-1 mb-1">
-                <div className="col-span-3">Candidate</div>
-                <div className="col-span-2 text-right">Probability</div>
-                <div className="col-span-2 text-right">Logprob</div>
-                <div className="col-span-5 pl-4">Distribution Mass</div>
+                <div className="col-span-3 truncate">Candidate</div>
+                <div className="col-span-2 text-right">
+                  <span className="hidden sm:inline">Probability</span>
+                  <span className="sm:hidden">Prob</span>
+                </div>
+                <div className="col-span-2 text-right">
+                  <span className="hidden sm:inline">Logprob</span>
+                  <span className="sm:hidden">Logp</span>
+                </div>
+                <div className="col-span-5 pl-2 sm:pl-4">
+                  <span className="hidden sm:inline">Distribution Mass</span>
+                  <span className="sm:hidden">Mass</span>
+                </div>
               </div>
 
               {(() => {
@@ -240,15 +249,15 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
                         (stage === 'prob_identify' || stage === 'prob_reorder' || stage === 'prob_handoff');
                       const isRevealPulse = stage === 'prob_reveal';
 
-                      let rowClasses = 'border-transparent bg-surface/50';
+                      let rowClasses = 'bg-transparent text-text-muted';
                       if (isWinnerFinal) {
-                        rowClasses = 'bg-primary-500/15 border-primary-500/40 shadow-sm dark:shadow-[0_0_12px_rgba(16,185,129,0.2)]';
+                        rowClasses = 'bg-primary-500/15 text-primary-600 dark:text-emerald-400 font-semibold shadow-xs';
                       } else if (isWinnerProb) {
-                        rowClasses = 'bg-primary-500/10 border-primary-500/30 shadow-sm dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]';
+                        rowClasses = 'bg-primary-500/10 text-primary-600 dark:text-emerald-400 font-medium';
                       } else if ((isSelect || isAppend) && !isSelected) {
-                        rowClasses = 'border-transparent opacity-30';
+                        rowClasses = 'opacity-30';
                       } else if (isRevealPulse) {
-                        rowClasses = 'border-border-strong bg-surface-subtle';
+                        rowClasses = 'bg-surface-subtle/60 text-text-main';
                       }
 
                       return (
@@ -257,12 +266,12 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
                           initial={false}
                           transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                           key={alt.token}
-                          className={`grid grid-cols-12 items-center text-xs font-mono px-2 py-1 rounded-lg transition-colors duration-300 border ${rowClasses}`}
+                          className={`grid grid-cols-12 items-center text-xs font-mono px-2 py-1.5 rounded-lg transition-colors duration-200 hover:bg-surface-raised/60 ${rowClasses}`}
                         >
                           <div className="col-span-3 truncate pl-1 relative">
                             <span
-                              className={`px-1.5 py-0.5 rounded font-bold transition-colors duration-500 ${
-                                isWinnerFinal ? 'bg-primary text-white dark:text-black shadow-sm' : 'bg-surface text-text-main border border-border'
+                              className={`px-1.5 py-0.5 rounded font-bold transition-colors ${
+                                isWinnerFinal ? 'bg-primary text-white dark:text-black shadow-xs' : 'text-text-main'
                               }`}
                             >
                               {alt.token.replace(/\n/g, '↵') || ' '}
@@ -282,20 +291,26 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
                           >
                             {alt.logProbability.toFixed(2)}
                           </div>
-                          <div className="col-span-5 pl-4 pr-1">
-                            <div className="h-1.5 w-full bg-surface-subtle border border-border-subtle rounded-full overflow-hidden">
+                          <div className="col-span-5 pl-2 sm:pl-4 pr-1 flex items-center">
+                            <div className="h-2 w-full bg-surface-subtle/80 dark:bg-white/[0.08] border border-border/40 rounded-full overflow-hidden p-[0.5px]">
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ease-out ${
                                   isWinnerFinal || isWinnerProb
-                                    ? 'bg-primary-500 shadow-sm dark:shadow-[0_0_10px_rgba(16,185,129,0.8)]'
+                                    ? 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-400 dark:from-emerald-400 dark:via-emerald-300 dark:to-teal-200 shadow-[0_0_12px_rgba(16,185,129,0.9)]'
                                     : isRevealPulse
-                                    ? 'bg-slate-400 dark:bg-white/40'
-                                    : 'bg-primary-500/30'
+                                    ? 'bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse'
+                                    : alt.probability >= 0.5
+                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400 dark:from-emerald-400 dark:to-teal-300 shadow-[0_0_10px_rgba(16,185,129,0.7)]'
+                                    : alt.probability >= 0.15
+                                    ? 'bg-emerald-500/85 dark:bg-emerald-400/85 shadow-[0_0_6px_rgba(16,185,129,0.45)]'
+                                    : alt.probability >= 0.05
+                                    ? 'bg-emerald-500/65 dark:bg-emerald-400/65 shadow-[0_0_4px_rgba(16,185,129,0.3)]'
+                                    : 'bg-emerald-500/40 dark:bg-emerald-400/40'
                                 }`}
                                 style={{
                                   width:
                                     isProbAny || isSelect || isAppend
-                                      ? `${Math.max(1, alt.probability * 100)}%`
+                                      ? `${Math.max(alt.probability > 0 ? 1.5 : 0, alt.probability * 100)}%`
                                       : '0%'
                                 }}
                               />
@@ -340,9 +355,9 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
                 </div>
               )}
               <div
-                className={`text-xl font-mono px-3 py-1 rounded-lg transition-colors duration-300 ${
+                className={`text-xl font-mono px-3.5 py-1.5 rounded-lg transition-colors duration-300 ${
                   isSelect || isAppend
-                    ? 'bg-surface text-text-main border border-primary-500/40 min-w-[3.5rem] text-center font-bold shadow-sm'
+                    ? 'bg-primary text-white dark:text-black font-bold shadow-md'
                     : 'text-text-muted/50 bg-surface-subtle'
                 }`}
               >

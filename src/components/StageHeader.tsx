@@ -12,9 +12,6 @@ export const StageHeader: React.FC<StageHeaderProps> = ({ stage }) => {
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(5,150,105,0.1)] dark:shadow-[0_0_10px_rgba(16,185,129,0.15)]">
           STAGE 0{stage.stepNumber} OF 07
         </span>
-        <span className="text-[11px] font-mono text-text-muted tracking-wide uppercase">
-          TRANSFORMER_INTERNAL_PIPELINE
-        </span>
       </div>
 
       <div className="flex flex-col gap-1">

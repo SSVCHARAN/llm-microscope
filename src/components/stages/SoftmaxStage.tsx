@@ -237,7 +237,7 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="flex flex-col gap-8"
         >
-          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-sm dark:shadow-2xl transition-colors duration-200">
+          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-sm dark:shadow-2xl transition-colors duration-200 w-full max-w-full min-w-0 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-3">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[13px] font-mono uppercase tracking-wider text-text-main font-bold">
@@ -276,16 +276,16 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
             </div>
 
             {/* Live Mathematical Conversion Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-[11px]">
+            <div className="overflow-x-auto w-full max-w-full touch-pan-x pb-2 custom-scrollbar">
+              <table className="w-full min-w-[560px] text-left font-mono text-[11px]">
                 <thead>
                   <tr className="border-b border-border-subtle text-text-muted uppercase tracking-wider">
-                    <th className="py-2.5 px-3">Token</th>
-                    <th className="py-2.5 px-3">Raw Logit (z)</th>
-                    <th className="py-2.5 px-3">Scaled (z / T)</th>
-                    <th className="py-2.5 px-3">Exponent e^(z/T)</th>
-                    <th className="py-2.5 px-3">Softmax Prob (%)</th>
-                    <th className="py-2.5 px-3">Educational Result</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Token</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Raw Logit (z)</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Scaled (z / T)</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Exponent e^(z/T)</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Softmax Prob (%)</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Educational Result</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y border-border-subtle">
