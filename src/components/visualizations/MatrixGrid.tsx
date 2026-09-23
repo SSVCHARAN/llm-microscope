@@ -52,11 +52,11 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
       {(title || subtitle) && (
         <div className="flex flex-col gap-0.5 mb-2">
           {title && <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-white">{title}</span>}
-          {subtitle && <span className="text-[11px] font-mono text-[#A0A0A0]">{subtitle}</span>}
+          {subtitle && <span className="text-[11px] font-mono text-text-muted">{subtitle}</span>}
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-hide">
         <div className="inline-block min-w-full">
           {/* Column labels */}
           {colLabels && (
@@ -65,7 +65,7 @@ export const MatrixGrid: React.FC<MatrixGridProps> = ({
                 <div
                   key={cIdx}
                   className={`w-14 text-center text-[10px] font-mono truncate transition-colors ${
-                    highlightCol === cIdx ? 'text-emerald-400 font-bold' : 'text-[#A0A0A0]'
+                    highlightCol === cIdx ? 'text-emerald-400 font-bold' : 'text-text-muted'
                   }`}
                   title={lbl}
                 >

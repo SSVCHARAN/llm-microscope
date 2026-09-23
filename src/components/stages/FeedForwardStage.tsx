@@ -18,13 +18,13 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
   return (
     <div className="flex flex-col gap-8 w-full">
       {/* 1. Jargon Buster: Clear definitions for MLP, GELU, Proj, D */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-black/60 p-5 shadow-xl">
-        <div className="flex items-center gap-2 pb-2 border-b border-white/[0.06]">
+      <div className="flex flex-col gap-3 rounded-2xl border border-surface-border bg-surface p-5 shadow-xl">
+        <div className="flex items-center gap-2 pb-2 border-b border-surface-border">
           <BookOpen className="w-4 h-4 text-emerald-400" />
-          <span className="text-[12px] font-mono uppercase tracking-wider text-white font-bold">
+          <span className="text-[12px] font-mono uppercase tracking-wider text-text font-bold">
             Jargon Buster: Key Concepts Decoded
           </span>
-          <span className="text-[10px] font-mono text-[#888] hidden sm:inline">
+          <span className="text-[10px] font-mono text-text-muted hidden sm:inline">
             (Read this first to understand the terms used below)
           </span>
         </div>
@@ -35,8 +35,8 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
             <span className="text-[11px] font-mono font-bold text-amber-400">
               d (Vector Dimension)
             </span>
-            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
-              The number of coordinate numbers defining a token. In real GPT-2, <code className="text-white">d = 768</code>. For visual clarity in this microscope, we track <code className="text-white">d = 4</code> coordinates.
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              The number of coordinate numbers defining a token. In real GPT-2, <code className="text-text bg-white/[0.06] px-1 py-0.5 rounded">d = 768</code>. For visual clarity in this microscope, we track <code className="text-text bg-white/[0.06] px-1 py-0.5 rounded">d = 4</code> coordinates.
             </p>
           </div>
 
@@ -45,7 +45,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
             <span className="text-[11px] font-mono font-bold text-emerald-400">
               MLP (Feed-Forward Net)
             </span>
-            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+            <p className="text-[11px] leading-relaxed text-text-muted">
               A standard neural network with layers of connected neurons. While Attention <em>routes context between tokens</em>, the MLP <em>processes and reasons upon that context</em>.
             </p>
           </div>
@@ -55,7 +55,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
             <span className="text-[11px] font-mono font-bold text-cyan-400">
               Proj (Projection)
             </span>
-            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+            <p className="text-[11px] leading-relaxed text-text-muted">
               Multiplying a vector by a matrix to change its shape. Here, the vector expands 4× from 4 to 8 dimensions, then projects back down to 4 dimensions.
             </p>
           </div>
@@ -65,19 +65,19 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
             <span className="text-[11px] font-mono font-bold text-rose-400">
               GELU (Activation Gate)
             </span>
-            <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
-              A non-linear switch function. Acts like a bouncer: positive signals pass through; negative noise is silenced to <code className="text-white">0.00</code>.
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              A non-linear switch function. Acts like a bouncer: positive signals pass through; negative noise is silenced to <code className="text-text bg-white/[0.06] px-1 py-0.5 rounded">0.00</code>.
             </p>
           </div>
         </div>
       </div>
 
-      {/* 2. Context Bridge: How Stage 4 connects to Stage 5 without premature x1..x4 */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-emerald-500/30 bg-black/70 p-6 shadow-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+      {/* 2. Context Bridge */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-emerald-500/30 bg-surface p-6 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-3">
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-emerald-400" />
-            <span className="text-[13px] font-mono uppercase tracking-wider text-white font-bold">
+            <span className="text-[13px] font-mono uppercase tracking-wider text-text font-bold">
               Where does the input to Stage 5 come from?
             </span>
           </div>
@@ -86,8 +86,8 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
           </span>
         </div>
 
-        <p className="text-[12px] leading-relaxed text-[#C0C0C0]">
-          The Feed-Forward Network runs on <strong>each token individually</strong>. Because our goal is to predict the word that follows <code className="text-white">"The cat sat on the"</code>, we are processing the <strong>terminal token "{attentionOutput.tokenText}"</strong>. In Stage 4, this token gathered context from previous words ("cat" and "sat"). Now, we add that context vector to the token's original embedding:
+        <p className="text-[12px] leading-relaxed text-text-secondary">
+          The Feed-Forward Network runs on <strong>each token individually</strong>. Because our goal is to predict the word that follows <code className="text-text bg-white/[0.06] px-1 py-0.5 rounded">"The cat sat on the"</code>, we are processing the <strong>terminal token "{attentionOutput.tokenText}"</strong>. In Stage 4, this token gathered context from previous words ("cat" and "sat"). Now, we add that context vector to the token's original embedding:
         </p>
 
         {/* 1. Original Token Vector */}
@@ -101,9 +101,9 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
         />
 
         {/* Plus Symbol */}
-        <div className="flex justify-center -my-1 text-[#888]">
-          <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center">
-            <Plus className="w-3.5 h-3.5 text-white" />
+        <div className="flex justify-center -my-1 text-text-muted">
+          <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-surface-border flex items-center justify-center">
+            <Plus className="w-3.5 h-3.5 text-text" />
           </div>
         </div>
 
@@ -118,8 +118,8 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
         />
 
         {/* Equals Symbol */}
-        <div className="flex justify-center -my-1 text-[#888]">
-          <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center">
+        <div className="flex justify-center -my-1 text-text-muted">
+          <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-surface-border flex items-center justify-center">
             <Equal className="w-3.5 h-3.5 text-emerald-400" />
           </div>
         </div>
@@ -140,7 +140,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-mono font-bold text-white uppercase text-[11px] tracking-wide">
+            <span className="font-mono font-bold text-text uppercase text-[11px] tracking-wide">
               Introducing the Input Nodes (x₁, x₂, x₃, x₄):
             </span>
             <p className="leading-relaxed">
@@ -157,27 +157,27 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
         </div>
       </div>
 
-      {/* 3. Operation Blueprint: What do the connection lines actually do? */}
+      {/* 3. Operation Blueprint */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-2">
+        <div className="p-4 rounded-xl border border-surface-border bg-surface flex flex-col gap-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
             What do the connection lines (synapses) do?
           </span>
-          <p className="text-[12px] text-[#B0B0B0] leading-relaxed">
+          <p className="text-[12px] text-text-muted leading-relaxed">
             Every line connecting an input node to a hidden node represents a <strong>learned multiplier weight (w)</strong>. When a signal travels along a line, it is multiplied by that line's weight. Green lines have positive weights (amplify); red/dim lines have negative weights (suppress).
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border border-white/[0.08] bg-black/40 flex flex-col gap-2">
+        <div className="p-4 rounded-xl border border-surface-border bg-surface flex flex-col gap-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold">
             What operation is performed on each hidden neuron?
           </span>
-          <p className="text-[12px] text-[#B0B0B0] leading-relaxed">
+          <p className="text-[12px] text-text-muted leading-relaxed">
             Each hidden neuron computes a <strong>Weighted Sum</strong>:
             <br />
-            <code className="text-white font-mono text-[11px]">Pre-Activation = (x₁·w₁) + (x₂·w₂) + (x₃·w₃) + (x₄·w₄) + bias</code>
+            <code className="text-text font-mono text-[11px]">Pre-Activation = (x₁·w₁) + (x₂·w₂) + (x₃·w₃) + (x₄·w₄) + bias</code>
             <br />
-            Then applies <strong>GELU</strong>: If the sum is positive, the neuron fires! If negative, it is silenced to <code className="text-white">0.00</code>.
+            Then applies <strong>GELU</strong>: If the sum is positive, the neuron fires! If negative, it is silenced to <code className="text-text font-mono">0.00</code>.
           </p>
         </div>
       </div>
@@ -185,7 +185,7 @@ export const FeedForwardStage: React.FC<FeedForwardStageProps> = ({
       {/* 4. The Interactive Neuron Network Visualization */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between px-2">
-          <span className="text-[12px] font-mono uppercase tracking-wider text-white font-bold">
+          <span className="text-[12px] font-mono uppercase tracking-wider text-text font-bold">
             Interactive Neural Graph (Click any neuron to see its exact incoming math!)
           </span>
           <span className="text-[11px] font-mono text-emerald-400">

@@ -95,8 +95,9 @@ export const InputBar: React.FC<InputBarProps> = ({
             <button
               onClick={onPrev}
               disabled={activeStageIndex === 0}
+              aria-label="Previous Stage"
               title="Previous Stage"
-              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-[#A0A0A0] hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-text-muted hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all focus-ring"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -104,8 +105,9 @@ export const InputBar: React.FC<InputBarProps> = ({
             <button
               onClick={onNext}
               disabled={activeStageIndex === stages.length - 1}
+              aria-label="Next Stage"
               title="Next Stage"
-              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-[#A0A0A0] hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-text-muted hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all focus-ring"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -113,8 +115,9 @@ export const InputBar: React.FC<InputBarProps> = ({
             {/* Reset */}
             <button
               onClick={onReset}
+              aria-label="Restart walkthrough from Stage 1"
               title="Restart from Stage 1"
-              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-[#A0A0A0] hover:text-white hover:bg-white/[0.08] transition-all"
+              className="p-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] text-text-muted hover:text-white hover:bg-white/[0.08] transition-all focus-ring"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -122,7 +125,7 @@ export const InputBar: React.FC<InputBarProps> = ({
         </div>
 
         {/* Bottom row: Stage Progress Dots / Segmented Stepper */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide" role="tablist" aria-label="Transformer stages">
           {stages.map((stg, idx) => {
             const isActive = idx === activeStageIndex;
             const isCompleted = idx < activeStageIndex;
@@ -130,12 +133,15 @@ export const InputBar: React.FC<InputBarProps> = ({
               <button
                 key={stg.id}
                 onClick={() => onSelectStage(idx)}
-                className={`flex-1 min-w-[120px] flex items-center gap-2 py-1.5 px-2.5 rounded-md text-left transition-all border ${
+                role="tab"
+                aria-selected={isActive}
+                aria-current={isActive ? 'step' : undefined}
+                className={`flex-1 min-w-[125px] flex items-center gap-2 py-1.5 px-2.5 rounded-md text-left transition-all border focus-ring ${
                   isActive
-                    ? 'bg-emerald-500/10 border-emerald-500/40 text-white shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                    ? 'bg-emerald-500/10 border-emerald-500/40 text-white shadow-[0_0_12px_rgba(16,185,129,0.15)] font-semibold'
                     : isCompleted
-                    ? 'bg-white/[0.02] border-white/[0.06] text-[#A0A0A0] hover:text-white hover:bg-white/[0.04]'
-                    : 'bg-transparent border-transparent text-[#777] hover:text-[#A0A0A0]'
+                    ? 'bg-white/[0.02] border-white/[0.06] text-text-secondary hover:text-white hover:bg-white/[0.04]'
+                    : 'bg-transparent border-transparent text-text-muted hover:text-white'
                 }`}
               >
                 <div
@@ -144,7 +150,7 @@ export const InputBar: React.FC<InputBarProps> = ({
                       ? 'bg-emerald-500 text-black font-bold'
                       : isCompleted
                       ? 'bg-white/20 text-white'
-                      : 'bg-white/[0.06] text-[#666]'
+                      : 'bg-white/[0.06] text-text-muted'
                   }`}
                 >
                   {idx + 1}

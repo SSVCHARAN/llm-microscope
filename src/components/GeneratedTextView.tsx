@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { GenerationStep } from '../types';
+import { Eye, ArrowDown, Sparkles } from 'lucide-react';
 
 interface Props {
   steps: GenerationStep[];
@@ -12,9 +13,66 @@ interface Props {
   isGenerating: boolean;
 }
 
-export function GeneratedTextView({ steps, currentAnimStep, stage, selectedStepIndex, onStepClick, showTokenBoundaries, setShowTokenBoundaries, isGenerating }: Props) {
+interface TokenButtonProps {
+  step: GenerationStep;
+  isSelected: boolean;
+  isAnimActive?: boolean;
+  showTokenBoundaries: boolean;
+  onClick: (index: number) => void;
+}
+
+const TokenButton = React.memo(function TokenButton({
+  step,
+  isSelected,
+  isAnimActive,
+  showTokenBoundaries,
+  onClick
+}: TokenButtonProps) {
+  const isNewline = step.tokenText.includes('\n');
+  const displaySpace = showTokenBoundaries && !isNewline && /^\s+$/.test(step.tokenText);
+  const displayNewline = showTokenBoundaries && isNewline;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(step.index)}
+      className={`
+        relative inline-block text-left font-mono transition-all rounded px-0.5 focus-ring
+        ${showTokenBoundaries ? 'border border-white/20 mx-[1px] my-[1px] bg-white/[0.03] hover:border-emerald-400' : 'hover:bg-white/[0.08]'}
+        ${isSelected ? 'bg-emerald-500/30 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400 font-semibold' : ''}
+        ${isAnimActive ? 'ring-2 ring-emerald-400 bg-emerald-500/20 text-emerald-300 font-bold animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.5)]' : ''}
+      `}
+      title={`Token #${step.index}: "${step.tokenText.replace(/\n/g, '\\n')}" | Prob: ${(step.probability * 100).toFixed(1)}% | Latency: ${step.deltaLatency.toFixed(0)}ms`}
+      aria-label={`Token ${step.index}: ${step.tokenText.trim() || 'whitespace'}`}
+    >
+      {displayNewline && (
+        <span className="text-text-muted/40 select-none pointer-events-none text-[10px] font-mono ml-0.5">
+          ↵{'\n'}
+        </span>
+      )}
+      {displaySpace && (
+        <span className="text-text-muted/30 select-none pointer-events-none text-[10px] font-mono px-0.5">
+          ·
+        </span>
+      )}
+      <span>{step.tokenText}</span>
+    </button>
+  );
+});
+
+export function GeneratedTextView({
+  steps,
+  currentAnimStep,
+  stage,
+  selectedStepIndex,
+  onStepClick,
+  showTokenBoundaries,
+  setShowTokenBoundaries,
+  isGenerating
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -26,76 +84,95 @@ export function GeneratedTextView({ steps, currentAnimStep, stage, selectedStepI
   const handleScroll = () => {
     const container = containerRef.current;
     if (!container) return;
-    // If user scrolled up, disable auto-scroll. If they are at the bottom, enable it.
-    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10;
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
     autoScrollRef.current = isAtBottom;
+    setUserScrolledUp(!isAtBottom && isGenerating);
+  };
+
+  const resumeAutoScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
+    autoScrollRef.current = true;
+    setUserScrolledUp(false);
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-4 flex flex-col h-full min-h-[400px] max-h-[calc(100vh-120px)]">
-      <div className="flex flex-col mb-3 gap-1">
+    <div className="bg-[#111317] border border-white/[0.08] rounded-2xl p-5 flex flex-col h-full min-h-[400px] max-h-[calc(100vh-140px)] shadow-xl relative">
+      {/* Header */}
+      <div className="flex flex-col mb-3 gap-1.5 border-b border-white/[0.06] pb-3">
         <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-text-main">GENERATED OUTPUT</h3>
-          <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer hover:text-text-main transition-colors">
-            <input 
-              type="checkbox" 
-              checked={showTokenBoundaries} 
-              onChange={e => setShowTokenBoundaries(e.target.checked)}
-              className="rounded border-border bg-black/40 text-primary focus:ring-primary focus:ring-offset-background"
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-emerald-400" />
+            <h3 className="font-mono font-bold text-xs uppercase tracking-wider text-white">
+              Generated Stream Output
+            </h3>
+          </div>
+
+          <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer hover:text-white transition-colors select-none">
+            <input
+              type="checkbox"
+              checked={showTokenBoundaries}
+              onChange={(e) => setShowTokenBoundaries(e.target.checked)}
+              className="w-4 h-4 rounded border-white/20 bg-black/50 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-background cursor-pointer"
             />
-            Token boundaries
+            <span className="font-mono text-[11px]">Show Boundaries</span>
           </label>
         </div>
+
         {showTokenBoundaries && (
-          <div className="text-[10px] text-text-muted/70 italic">
-            Each outlined region is one streamed token. Tokens are not necessarily words.
+          <div className="text-[11px] font-mono text-emerald-400/80 leading-tight">
+            Each outlined box represents one individual token generated by the model. Click any token to inspect its step logprobs.
           </div>
         )}
       </div>
-      
-      <div 
+
+      {/* Main Text Content Box */}
+      <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 bg-black/40 border border-border/50 rounded p-4 overflow-y-auto font-mono text-sm leading-relaxed whitespace-pre-wrap relative scroll-smooth"
+        className="flex-1 bg-black/40 border border-white/[0.06] rounded-xl p-4 overflow-y-auto font-mono text-sm leading-relaxed whitespace-pre-wrap relative shadow-inner scrollbar-hide"
       >
-        {steps.map(step => {
-          const isNewline = step.tokenText.includes('\n');
-          const displaySpace = showTokenBoundaries && !isNewline && /^\s+$/.test(step.tokenText);
-          const displayNewline = showTokenBoundaries && isNewline;
-          
-          return (
-            <span 
-              key={step.index}
-              onClick={() => onStepClick(step.index)}
-              className={`
-                relative cursor-pointer transition-colors
-                ${showTokenBoundaries ? 'border border-border/60 mx-[1px] px-[1px] rounded-sm' : ''}
-                ${selectedStepIndex === step.index ? 'bg-primary/30 text-white border-primary/50' : 'hover:bg-primary/20'}
-              `}
-              title={`Token ${step.index}: ${step.logProbability.toFixed(2)}`}
-            >
-              {displayNewline && <span className="absolute right-0 top-0 text-text-muted/30 select-none pointer-events-none text-[10px]">↵</span>}
-              {displaySpace && <span className="absolute inset-0 flex items-center justify-center text-text-muted/20 select-none pointer-events-none text-[10px]">·</span>}
-              {step.tokenText}
-            </span>
-          );
-        })}
-        {currentAnimStep && (stage === 'selection' || stage === 'token' || stage === 'append') && (
-          <span 
+        {steps.map((step) => (
+          <TokenButton
+            key={step.index}
+            step={step}
+            isSelected={selectedStepIndex === step.index}
+            isAnimActive={Boolean(currentAnimStep && currentAnimStep.index === step.index)}
+            showTokenBoundaries={showTokenBoundaries}
+            onClick={onStepClick}
+          />
+        ))}
+
+        {currentAnimStep && !steps.find((s) => s.index === currentAnimStep.index) && (stage === 'selection' || stage === 'token' || stage === 'append') && (
+          <span
             key={`anim-${currentAnimStep.index}`}
-            className={`
-              relative cursor-pointer transition-all duration-300
-              ${showTokenBoundaries ? 'border mx-[1px] px-[1px] rounded-sm' : ''}
-              bg-primary/20 border-primary/50 text-white animate-pulse shadow-[0_0_8px_rgba(var(--color-primary),0.3)]
-            `}
+            className="inline-block relative px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.4)]"
           >
             {currentAnimStep.tokenText}
           </span>
         )}
+
         {steps.length === 0 && !currentAnimStep && (
-          <span className="text-text-muted italic select-none">Waiting for generation...</span>
+          <div className="flex flex-col items-center justify-center h-full text-center text-text-muted/60 py-12 gap-2">
+            <Sparkles className="w-6 h-6 text-text-muted/40" />
+            <span className="text-xs font-mono">
+              Ready. Enter a prompt above and start generation.
+            </span>
+          </div>
         )}
       </div>
+
+      {/* Floating Resume Auto-Scroll Button */}
+      {userScrolledUp && (
+        <button
+          onClick={resumeAutoScroll}
+          className="absolute bottom-8 right-8 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500 text-black font-mono font-bold text-xs shadow-[0_4px_16px_rgba(16,185,129,0.4)] hover:bg-emerald-400 transition-transform active:scale-95"
+        >
+          <ArrowDown className="w-3.5 h-3.5" />
+          <span>Resume Scroll</span>
+        </button>
+      )}
     </div>
   );
 }

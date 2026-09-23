@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GenerationStep } from '../types';
 import { PipelineStage } from '../hooks/usePipelineVisualizer';
-import { Tooltip } from './Tooltip';
 import { HyperText } from './HyperText';
 import { motion } from 'framer-motion';
+import { CheckCircle2, Circle, Layers, Sparkles, Cpu, BarChart3, ArrowDown } from 'lucide-react';
 
 interface Props {
   stage: PipelineStage;
@@ -13,82 +13,99 @@ interface Props {
 }
 
 export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps }: Props) {
-  const [animKey, setAnimKey] = useState(0);
+  const [, setAnimKey] = useState(0);
 
   useEffect(() => {
-    if (step) setAnimKey(prev => prev + 1);
+    if (step) setAnimKey((prev) => prev + 1);
   }, [step?.index]);
 
-  const formatProb = (p: number) => (p * 100).toFixed(2) + '%';
+  const formatProb = (p: number) => (p * 100).toFixed(1) + '%';
 
-  // Simplified pipeline stages based on user request: Context -> Model -> Probabilities -> Selection -> Append
-  const isContext = stage === 'idle' || stage === 'context';
-  const isModel = stage === 'inference' || stage === 'logits';
-  
-  const isProbAny = stage.startsWith('prob_');
-  const isSelect = stage === 'selection' || stage === 'token';
-  const isAppend = stage === 'append';
+  // Pipeline stages: Context -> Model -> Probabilities -> Selection -> Append
+  // When idle and a step is provided (static inspect or live stream fallback), treat all stages as completed
+  const isStaticStep = stage === 'idle' && step !== null;
+  const isContext = isStaticStep || stage === 'idle' || stage === 'context';
+  const isModel = isStaticStep || stage === 'inference' || stage === 'logits';
+  const isProbAny = isStaticStep || stage.startsWith('prob_');
+  const isSelect = isStaticStep || stage === 'selection' || stage === 'token';
+  const isAppend = isStaticStep || stage === 'append';
 
-  // Helper to render recent context context
+  // Helper to render recent context window
   const renderContext = (includeCurrentStep: boolean) => {
     const recent = visualizedSteps.slice(-5);
     const count = (promptTokens || 0) + visualizedSteps.length - recent.length;
     return (
-      <div className="flex flex-wrap items-center justify-center gap-[3px] text-xs font-mono bg-surface p-3 rounded-lg border border-border/40 shadow-sm">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono bg-black/40 p-3 rounded-lg border border-white/[0.06] shadow-inner">
         {count > 0 && (
-          <span className="text-text-muted/60 bg-surface/50 px-2 py-1 rounded-md border border-border/20 text-[10px] tracking-wider uppercase mr-1">
+          <span className="text-text-muted bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06] text-[10px] tracking-wider uppercase mr-1">
             +{count} tokens
           </span>
         )}
         {recent.map((s, i) => (
-          <span key={i} className="text-text-main bg-black/30 hover:bg-black/40 transition-colors px-2 py-1 rounded-md border border-border/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span
+            key={i}
+            className="text-text-main bg-white/[0.06] hover:bg-white/[0.1] transition-colors px-2 py-1 rounded border border-white/[0.08]"
+          >
             {s.tokenText.replace(/\n/g, '↵') || '␣'}
           </span>
         ))}
         {includeCurrentStep && step && (
-          <span className="text-primary bg-primary/10 px-2 py-1 rounded-md border border-primary/30 animate-pulse shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_0_8px_rgba(var(--color-primary),0.2)]">
+          <motion.span
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-emerald-300 font-bold bg-emerald-500/20 px-2 py-1 rounded border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+          >
             {step.tokenText.replace(/\n/g, '↵') || '␣'}
-          </span>
+          </motion.span>
         )}
       </div>
     );
   };
 
-  const Connector = ({ active, handoff = false }: { active: boolean, handoff?: boolean }) => (
-    <div className="flex justify-center py-2 relative">
-      <div className={`w-0.5 h-6 transition-colors duration-500 relative overflow-hidden ${active ? 'bg-primary/20' : 'bg-border/30'}`}>
-        <div className={`absolute top-0 left-0 w-full bg-primary shadow-[0_0_8px_rgba(var(--color-primary),0.5)] transition-all duration-300 ${active ? 'h-full' : 'h-0'}`} />
+  const Connector = ({ active, handoff = false }: { active: boolean; handoff?: boolean }) => (
+    <div className="flex justify-center py-2 relative" aria-hidden="true">
+      <div
+        className={`w-0.5 h-6 transition-colors duration-500 relative overflow-hidden ${
+          active ? 'bg-emerald-500/30' : 'bg-white/[0.06]'
+        }`}
+      >
+        <div
+          className={`absolute top-0 left-0 w-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)] transition-all duration-300 ${
+            active ? 'h-full' : 'h-0'
+          }`}
+        />
         {handoff && (
-          <motion.div 
+          <motion.div
             initial={{ top: -10 }}
             animate={{ top: 24 }}
-            transition={{ duration: 0.35, ease: "linear" }}
-            className="absolute left-0 w-full h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,1)]"
+            transition={{ duration: 0.35, ease: 'linear' }}
+            className="absolute left-0 w-full h-2 bg-emerald-300 rounded-full shadow-[0_0_10px_rgba(16,185,129,1)]"
           />
         )}
       </div>
     </div>
   );
 
-  const getStatusIcon = (isActive: boolean, isPast: boolean, type: 'live' | 'derived' | 'conceptual') => {
-    if (isActive) return <span className="text-primary animate-pulse">●</span>;
-    if (isPast) return <span className="text-green-500">✓</span>;
-    if (type === 'live') return <span className="text-text-muted">○</span>;
-    if (type === 'derived') return <span className="text-text-muted">◇</span>;
-    return <span className="text-text-muted">□</span>;
+  const getStatusIcon = (isActive: boolean, isPast: boolean) => {
+    if (isActive) return <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />;
+    if (isPast) return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />;
+    return <Circle className="w-3.5 h-3.5 text-[#555]" />;
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-6 flex flex-col gap-0 shadow-sm relative overflow-hidden min-h-[700px] font-sans">
-      
-      {/* 1. CONTEXT */}
-      <div className={`flex flex-col z-10 transition-all duration-500 ${isContext ? 'opacity-100' : 'opacity-60'}`}>
-        <div className="text-[10px] uppercase tracking-widest text-text-muted font-semibold flex items-center gap-2 mb-2">
-          {getStatusIcon(isContext, !isContext, 'derived')} 
-          <span className={isContext ? 'text-text-main' : ''}>1. Context</span>
-          <span className="ml-auto text-[9px] text-text-muted/60 lowercase">The model looks at tokens generated so far</span>
+    <div className="bg-[#111317] border border-white/[0.08] rounded-2xl p-6 flex flex-col gap-0 shadow-2xl relative overflow-hidden min-h-[700px] font-sans">
+      {/* 1. CONTEXT BUFFER */}
+      <div className={`flex flex-col z-10 transition-all duration-500 ${isContext ? 'opacity-100' : 'opacity-65'}`}>
+        <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
+          {getStatusIcon(isContext, !isContext)}
+          <span className={isContext ? 'text-white font-bold' : 'text-text-muted'}>1. Context Buffer</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Input tokens accumulated so far</span>
         </div>
-        <div className={`transition-all duration-500 rounded p-1 ${isContext ? 'bg-primary/5 border border-primary/20' : 'border border-transparent'}`}>
+        <div
+          className={`transition-all duration-500 rounded-xl p-1.5 ${
+            isContext ? 'bg-emerald-500/[0.05] border border-emerald-500/30' : 'border border-transparent'
+          }`}
+        >
           {renderContext(false)}
         </div>
       </div>
@@ -96,128 +113,191 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
       <Connector active={isModel || isContext} />
 
       {/* 2. MODEL PROCESSING */}
-      <div className={`flex flex-col z-10 transition-all duration-500 ${isModel ? 'opacity-100' : 'opacity-60'}`}>
-        <div className="text-[10px] uppercase tracking-widest text-text-muted font-semibold flex items-center gap-2 mb-2">
-          {getStatusIcon(isModel, isProbAny || isSelect || isAppend, 'conceptual')} 
-          <span className={isModel ? 'text-text-main' : ''}>2. Model Processing (Conceptual)</span>
-          <span className="ml-auto text-[9px] text-text-muted/60 lowercase">Educational approximation</span>
+      <div className={`flex flex-col z-10 transition-all duration-500 ${isModel ? 'opacity-100' : 'opacity-65'}`}>
+        <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
+          {getStatusIcon(isModel, isProbAny || isSelect || isAppend)}
+          <span className={isModel ? 'text-white font-bold' : 'text-text-muted'}>2. Transformer Forward Pass</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Attention & MLP layer computation</span>
         </div>
-        <div className="bg-surface/50 border border-border/40 rounded-lg p-5 flex flex-col gap-4 relative overflow-hidden shadow-sm">
-           <div className={`flex flex-col items-center gap-3 transition-all duration-700 ${isModel ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-1'}`}>
-             
-             {/* Context Vector representation */}
-             <div className="flex items-center justify-between w-full max-w-[280px]">
-                <div className={`text-[10px] font-mono tracking-widest uppercase ${isModel ? 'text-primary' : 'text-text-muted'}`}>Embeddings</div>
-                <div className="flex gap-[2px]">
-                   {[...Array(12)].map((_, i) => (
-                      <div key={i} className={`w-1.5 h-4 rounded-[1px] transition-colors duration-500 ${isModel ? 'bg-primary/40' : 'bg-border/30'}`} />
-                   ))}
-                </div>
-             </div>
-             
-             {/* Attention / MLP layers */}
-             <div className={`w-full max-w-[280px] border rounded-md p-3 text-center flex flex-col gap-2 transition-all duration-500 ${isModel && stage === 'inference' ? 'border-purple-500/40 bg-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'border-border/30 bg-black/20'}`}>
-                <div className={`text-[10px] font-mono tracking-widest uppercase ${isModel && stage === 'inference' ? 'text-purple-300' : 'text-text-muted'}`}>Transformer Block</div>
-                <div className="flex justify-center gap-[3px]">
-                   {/* Mini attention heads representation */}
-                   {[...Array(6)].map((_, i) => (
-                      <div key={i} className={`w-4 h-4 rounded-sm transition-colors duration-300 ${isModel && stage === 'inference' ? 'bg-purple-400/40 animate-pulse' : 'bg-border/30'}`} style={{ animationDelay: `${i * 100}ms` }} />
-                   ))}
-                </div>
-             </div>
+        <div className="bg-black/40 border border-white/[0.06] rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden shadow-inner">
+          <div
+            className={`flex flex-col items-center gap-3 transition-all duration-700 ${
+              isModel ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-1'
+            }`}
+          >
+            {/* Context Vector representation */}
+            <div className="flex items-center justify-between w-full max-w-[320px]">
+              <div className={`text-[10px] font-mono tracking-wider uppercase ${isModel ? 'text-emerald-400 font-bold' : 'text-text-muted'}`}>
+                Embedding Space (768-D)
+              </div>
+              <div className="flex gap-[2px]">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 h-3.5 rounded-[1px] transition-colors duration-500 ${
+                      isModel ? 'bg-emerald-400/50 shadow-[0_0_6px_rgba(16,185,129,0.3)]' : 'bg-white/[0.06]'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
 
-             {/* Logits output representation */}
-             <div className="flex items-center justify-between w-full max-w-[280px]">
-                <div className={`text-[10px] font-mono tracking-widest uppercase ${isModel && stage === 'logits' ? 'text-blue-300' : 'text-text-muted'}`}>Vocab Logits</div>
-                <div className="flex gap-[2px] items-end h-5">
-                   {[4, 2, 8, 3, 5, 1, 10, 2, 6, 4].map((h, i) => (
-                      <div key={i} className={`w-1.5 rounded-[1px] transition-all duration-500 ${isModel && stage === 'logits' ? 'bg-blue-400/60 animate-pulse' : 'bg-border/30'}`} style={{ height: `${h * 10}%`, animationDelay: `${i * 50}ms` }} />
-                   ))}
-                </div>
-             </div>
-             
-           </div>
+            {/* Attention / MLP layers */}
+            <div
+              className={`w-full max-w-[320px] border rounded-lg p-2.5 text-center flex flex-col gap-1.5 transition-all duration-500 ${
+                isModel && stage === 'inference'
+                  ? 'border-emerald-500/50 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                  : 'border-white/[0.06] bg-black/30'
+              }`}
+            >
+              <div className="flex items-center justify-between px-1">
+                <span className={`text-[10px] font-mono tracking-wider uppercase ${isModel && stage === 'inference' ? 'text-emerald-300 font-bold' : 'text-text-muted'}`}>
+                  Transformer Blocks
+                </span>
+                <span className="text-[9px] font-mono text-[#888]">12 Heads × QKV</span>
+              </div>
+              <div className="flex justify-center gap-1">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-4 h-4 rounded-sm transition-colors duration-300 ${
+                      isModel && stage === 'inference' ? 'bg-emerald-400/60 animate-pulse' : 'bg-white/[0.06]'
+                    }`}
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Logits output representation */}
+            <div className="flex items-center justify-between w-full max-w-[320px]">
+              <div className={`text-[10px] font-mono tracking-wider uppercase ${isModel && stage === 'logits' ? 'text-emerald-400 font-bold' : 'text-text-muted'}`}>
+                Vocabulary Logits (50,257)
+              </div>
+              <div className="flex gap-[2px] items-end h-5">
+                {[4, 2, 8, 3, 5, 1, 10, 2, 6, 4].map((h, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 rounded-[1px] transition-all duration-500 ${
+                      isModel && stage === 'logits' ? 'bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.5)] animate-pulse' : 'bg-white/[0.06]'
+                    }`}
+                    style={{ height: `${h * 10}%`, animationDelay: `${i * 40}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <Connector active={isProbAny || isModel} />
 
       {/* 3. NEXT TOKEN PROBABILITIES */}
-      <div className={`flex flex-col z-10 transition-all duration-500 ${isProbAny || isSelect || isAppend ? 'opacity-100' : 'opacity-40'}`}>
-        <div className="text-[10px] uppercase tracking-widest text-text-muted font-semibold flex items-center gap-2 mb-2">
-          {getStatusIcon(isProbAny, isSelect || isAppend, 'live')} 
-          <span className={isProbAny ? 'text-text-main' : ''}>3. Next Token Probabilities (Live Data)</span>
-          <span className="ml-auto text-[9px] text-text-muted/60 lowercase">Probabilities assigned to possible next tokens</span>
+      <div className={`flex flex-col z-10 transition-all duration-500 ${isProbAny || isSelect || isAppend ? 'opacity-100' : 'opacity-65'}`}>
+        <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
+          {getStatusIcon(isProbAny, isSelect || isAppend)}
+          <span className={isProbAny ? 'text-white font-bold' : 'text-text-muted'}>3. Next Token Probability Distribution</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Live Top Candidates</span>
         </div>
-        
-        <div className="w-full bg-surface border border-border/40 rounded-lg p-3 relative shadow-sm">
+
+        <div className="w-full bg-black/40 border border-white/[0.06] rounded-xl p-3.5 relative shadow-inner">
           {!step ? (
-            <div className="text-center text-xs text-text-muted py-4">Waiting for generation...</div>
+            <div className="text-center text-xs text-text-muted py-6 font-mono">Waiting for model execution...</div>
           ) : (
             <div className="flex flex-col gap-1.5 relative">
-              <div className="grid grid-cols-12 text-[9px] text-text-muted uppercase tracking-widest border-b border-border/30 pb-1 px-1 mb-1">
-                <div className="col-span-3">Token</div>
-                <div className="col-span-2 text-right">Prob</div>
-                <div className="col-span-2 text-right">Log Prob</div>
-                <div className="col-span-5 pl-4">Distribution</div>
+              {step.alternatives.length === 1 && (
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400/90 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 mb-1">
+                  <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>Model reasoning / thinking mode (logprobs omitted by engine)</span>
+                </div>
+              )}
+              <div className="grid grid-cols-12 text-[10px] text-text-muted uppercase font-mono tracking-wider border-b border-white/[0.06] pb-1.5 px-1 mb-1">
+                <div className="col-span-3">Candidate</div>
+                <div className="col-span-2 text-right">Probability</div>
+                <div className="col-span-2 text-right">Logprob</div>
+                <div className="col-span-5 pl-4">Distribution Mass</div>
               </div>
-              
+
               {(() => {
-                // Calculate visual ordering dynamically
                 const raw = [...step.alternatives];
-                
+
                 // If it's the reorder/handoff stage, or selection stage, ensure winner is at the top
                 if (stage === 'prob_reorder' || stage === 'prob_handoff' || isSelect || isAppend) {
-                   const winnerIndex = raw.findIndex(a => a.token === step.tokenText);
-                   if (winnerIndex > 0) {
-                     const winner = raw.splice(winnerIndex, 1)[0];
-                     raw.unshift(winner);
-                   }
+                  const winnerIndex = raw.findIndex((a) => a.token === step.tokenText);
+                  if (winnerIndex > 0) {
+                    const winner = raw.splice(winnerIndex, 1)[0];
+                    raw.unshift(winner);
+                  }
                 }
 
                 return (
                   <div className="flex flex-col gap-1.5 relative">
-                    {raw.map((alt, i) => {
+                    {raw.map((alt) => {
                       const isSelected = alt.token === step.tokenText;
                       const isWinnerFinal = isSelected && (isSelect || isAppend);
-                      const isWinnerProb = isSelected && (stage === 'prob_identify' || stage === 'prob_reorder' || stage === 'prob_handoff');
+                      const isWinnerProb =
+                        isSelected &&
+                        (stage === 'prob_identify' || stage === 'prob_reorder' || stage === 'prob_handoff');
                       const isRevealPulse = stage === 'prob_reveal';
-                      
-                      let rowClasses = 'border border-transparent';
+
+                      let rowClasses = 'border-transparent bg-white/[0.02]';
                       if (isWinnerFinal) {
-                        rowClasses = 'bg-primary/10 border-primary/20';
+                        rowClasses = 'bg-emerald-500/15 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]';
                       } else if (isWinnerProb) {
-                        rowClasses = 'bg-green-500/10 border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.15)]';
+                        rowClasses = 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.15)]';
                       } else if ((isSelect || isAppend) && !isSelected) {
                         rowClasses = 'border-transparent opacity-30';
                       } else if (isRevealPulse) {
-                        rowClasses = 'border-transparent bg-white/5';
+                        rowClasses = 'border-white/[0.08] bg-white/[0.04]';
                       }
 
                       return (
-                        <motion.div 
+                        <motion.div
                           layout
                           initial={false}
-                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                          key={alt.token} 
-                          className={`grid grid-cols-12 items-center text-xs font-mono px-1 py-1 rounded transition-colors duration-300 border ${rowClasses}`}
+                          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                          key={alt.token}
+                          className={`grid grid-cols-12 items-center text-xs font-mono px-2 py-1 rounded-lg transition-colors duration-300 border ${rowClasses}`}
                         >
                           <div className="col-span-3 truncate pl-1 relative">
-                             <span className={`px-1.5 py-0.5 rounded transition-colors duration-500 ${isWinnerFinal ? 'bg-primary/20 text-blue-300' : 'bg-black/40 text-text-main'}`}>
-                               {alt.token.replace(/\n/g, '↵') || ' '}
-                             </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded font-bold transition-colors duration-500 ${
+                                isWinnerFinal ? 'bg-emerald-500 text-black' : 'bg-black/50 text-text-main border border-white/[0.08]'
+                              }`}
+                            >
+                              {alt.token.replace(/\n/g, '↵') || ' '}
+                            </span>
                           </div>
-                          <div className={`col-span-2 text-right transition-colors duration-500 ${isWinnerFinal ? 'text-blue-300 font-bold' : (isRevealPulse ? 'text-white' : 'text-text-main')}`}>
+                          <div
+                            className={`col-span-2 text-right transition-colors duration-500 tabular-nums ${
+                              isWinnerFinal ? 'text-emerald-400 font-bold' : isRevealPulse ? 'text-white' : 'text-text-main'
+                            }`}
+                          >
                             {formatProb(alt.probability)}
                           </div>
-                          <div className={`col-span-2 text-right text-[10px] transition-colors duration-500 ${isRevealPulse ? 'text-text-muted/90' : 'text-text-muted'}`}>
+                          <div
+                            className={`col-span-2 text-right text-[10px] transition-colors duration-500 tabular-nums ${
+                              isRevealPulse ? 'text-text-secondary' : 'text-text-muted'
+                            }`}
+                          >
                             {alt.logProbability.toFixed(2)}
                           </div>
                           <div className="col-span-5 pl-4 pr-1">
                             <div className="h-1.5 w-full bg-black/60 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full rounded-full transition-all duration-700 ease-out ${(isWinnerFinal || isWinnerProb) ? (isWinnerProb ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-primary shadow-[0_0_8px_rgba(var(--color-primary),0.8)]') : (isRevealPulse ? 'bg-text-muted' : 'bg-text-muted/60')}`}
-                                style={{ width: (isProbAny || isSelect || isAppend) ? `${Math.max(1, alt.probability * 100)}%` : '0%' }}
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                                  isWinnerFinal || isWinnerProb
+                                    ? 'bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]'
+                                    : isRevealPulse
+                                    ? 'bg-white/40'
+                                    : 'bg-emerald-500/30'
+                                }`}
+                                style={{
+                                  width:
+                                    isProbAny || isSelect || isAppend
+                                      ? `${Math.max(1, alt.probability * 100)}%`
+                                      : '0%'
+                                }}
                               />
                             </div>
                           </div>
@@ -235,62 +315,79 @@ export function TokenPredictionLoop({ stage, step, promptTokens, visualizedSteps
       <Connector active={isSelect || isProbAny} handoff={stage === 'prob_handoff'} />
 
       {/* 4. TOKEN SELECTION */}
-      <div className={`flex flex-col z-10 transition-all duration-500 ${isSelect || isAppend ? 'opacity-100' : 'opacity-40'}`}>
-        <div className="text-[10px] uppercase tracking-widest text-text-muted font-semibold flex items-center gap-2 mb-2">
-          {getStatusIcon(isSelect, isAppend, 'derived')} 
-          <span className={isSelect ? 'text-text-main' : ''}>4. Token Selection</span>
-          <span className="ml-auto text-[9px] text-text-muted/60 lowercase">The token that was actually chosen</span>
+      <div className={`flex flex-col z-10 transition-all duration-500 ${isSelect || isAppend ? 'opacity-100' : 'opacity-65'}`}>
+        <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
+          {getStatusIcon(isSelect, isAppend)}
+          <span className={isSelect ? 'text-white font-bold' : 'text-text-muted'}>4. Selected Token</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Sampled Winner</span>
         </div>
-        
-        <div className={`p-5 rounded-lg border transition-all duration-500 flex items-center justify-between ${isSelect ? 'bg-surface border-primary/40 shadow-[0_0_20px_rgba(var(--color-primary),0.1)]' : 'bg-surface/50 border-border/40 shadow-sm'}`}>
-           <div className="flex items-center gap-4">
-             <div className="flex flex-col items-start gap-1">
-               {step && (
-                 <div className="text-[9px] text-primary/80 uppercase tracking-widest font-mono">
-                   <HyperText key={`label-${step.index}`} duration={400} className="font-mono font-normal">
-                     {`TOKEN #${step.index}`}
-                   </HyperText>
-                 </div>
-               )}
-               <div className={`text-xl font-mono px-3 py-1 rounded transition-colors duration-300 ${isSelect || isAppend ? 'bg-black/40 text-text-main border border-border/50 min-w-[3rem] text-center' : 'text-text-muted/50 bg-black/20'}`}>
-                 {(isSelect || isAppend) && step ? (
-                   <HyperText key={`val-${step.index}`} duration={600} className="font-mono font-normal inline-block">
-                     {step.tokenText.replace(/\n/g, '↵') || '␣'}
-                   </HyperText>
-                 ) : (
-                   <span className="text-sm italic">predicting...</span>
-                 )}
-               </div>
-             </div>
-             {(isSelect || isAppend) && step && (
-               <div className="flex flex-col text-xs font-mono text-text-muted">
-                 <span>Prob: {formatProb(step.probability)}</span>
-                 <span>Rank: #{step.rank}</span>
-               </div>
-             )}
-           </div>
-           {(isSelect || isAppend) && step && step.rank > 1 && (
-             <div className="text-xs text-yellow-400/80 bg-yellow-400/10 px-2 py-1 rounded border border-yellow-400/20">
-               Selected by sampling
-             </div>
-           )}
+
+        <div
+          aria-live="polite"
+          className={`p-4 rounded-xl border transition-all duration-500 flex items-center justify-between ${
+            isSelect
+              ? 'bg-emerald-500/[0.08] border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.15)]'
+              : 'bg-black/30 border-white/[0.06] shadow-inner'
+          }`}
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-start gap-1">
+              {step && (
+                <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider font-mono">
+                  <HyperText key={`label-${step.index}`} duration={300} className="font-mono font-normal">
+                    {`TOKEN #${step.index}`}
+                  </HyperText>
+                </div>
+              )}
+              <div
+                className={`text-xl font-mono px-3 py-1 rounded-lg transition-colors duration-300 ${
+                  isSelect || isAppend
+                    ? 'bg-black/60 text-white border border-emerald-500/30 min-w-[3.5rem] text-center font-bold'
+                    : 'text-text-muted/50 bg-black/20'
+                }`}
+              >
+                {(isSelect || isAppend) && step ? (
+                  <HyperText key={`val-${step.index}`} duration={400} className="font-mono font-bold inline-block">
+                    {step.tokenText.replace(/\n/g, '↵') || '␣'}
+                  </HyperText>
+                ) : (
+                  <span className="text-sm italic text-text-muted">sampling...</span>
+                )}
+              </div>
+            </div>
+            {(isSelect || isAppend) && step && (
+              <div className="flex flex-col text-xs font-mono text-text-muted">
+                <span>Probability: <strong className="text-white">{formatProb(step.probability)}</strong></span>
+                <span>Logprob Rank: <strong className="text-emerald-400">#{step.rank}</strong></span>
+              </div>
+            )}
+          </div>
+          {(isSelect || isAppend) && step && step.rank > 1 && (
+            <div className="text-xs text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30 flex items-center gap-1.5 font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sampled Alternate (# {step.rank})</span>
+            </div>
+          )}
         </div>
       </div>
 
       <Connector active={isAppend || isSelect} />
 
       {/* 5. ADD TO CONTEXT */}
-      <div className={`flex flex-col z-10 transition-all duration-500 ${isAppend ? 'opacity-100' : 'opacity-40'}`}>
-        <div className="text-[10px] uppercase tracking-widest text-text-muted font-semibold flex items-center gap-2 mb-2">
-          {getStatusIcon(isAppend, false, 'derived')} 
-          <span className={isAppend ? 'text-text-main' : ''}>5. Add to Context</span>
-          <span className="ml-auto text-[9px] text-text-muted/60 lowercase">Selected token is incorporated into context</span>
+      <div className={`flex flex-col z-10 transition-all duration-500 ${isAppend ? 'opacity-100' : 'opacity-65'}`}>
+        <div className="text-[11px] uppercase tracking-wider text-text-muted font-mono font-semibold flex items-center gap-2 mb-2">
+          {getStatusIcon(isAppend, false)}
+          <span className={isAppend ? 'text-white font-bold' : 'text-text-muted'}>5. Append to Context Window</span>
+          <span className="ml-auto text-[10px] text-text-muted font-normal lowercase">Autoregressive Loop</span>
         </div>
-        <div className={`transition-all duration-500 rounded-lg p-2 ${isAppend ? 'bg-surface border border-primary/30 shadow-[0_0_15px_rgba(var(--color-primary),0.05)]' : 'border border-transparent'}`}>
+        <div
+          className={`transition-all duration-500 rounded-xl p-2 ${
+            isAppend ? 'bg-emerald-500/[0.05] border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'border border-transparent'
+          }`}
+        >
           {isAppend ? renderContext(true) : renderContext(false)}
         </div>
       </div>
-
     </div>
   );
 }

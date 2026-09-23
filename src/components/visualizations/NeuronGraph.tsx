@@ -110,7 +110,12 @@ export const NeuronGraph: React.FC<NeuronGraphProps> = ({ nodes, connections }) 
           </div>
         </div>
 
-        <svg width={width} height={height} className="overflow-visible max-w-full h-auto">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="overflow-visible w-full h-auto max-w-[640px] select-none"
+          role="img"
+          aria-label="Interactive 3-layer Feed-Forward Neural Graph showing Input coordinates, Hidden GELU feature detectors, and Output adjustments"
+        >
           {/* Synapses Connections (Weights) */}
           {connections.map((conn) => {
             const source = nodes.find((n) => n.id === conn.from);

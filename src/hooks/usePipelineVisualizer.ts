@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GenerationStep } from '../types';
 
 export type PipelineStage = 'idle' | 'context' | 'inference' | 'logits' | 'prob_receive' | 'prob_reveal' | 'prob_identify' | 'prob_reorder' | 'prob_handoff' | 'selection' | 'token' | 'append';
@@ -15,6 +15,16 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
   const [isPlaying, setIsPlaying] = useState(true);
   const [speed, setSpeed] = useState<PlaybackSpeed>('1x');
   
+  // Refs for stable execution without effect dependency churn
+  const rawStepsRef = useRef(rawSteps);
+  rawStepsRef.current = rawSteps;
+
+  const nextIndexRef = useRef(nextIndex);
+  nextIndexRef.current = nextIndex;
+
+  const currentAnimStepRef = useRef(currentAnimStep);
+  currentAnimStepRef.current = currentAnimStep;
+
   // Visualization Metrics
   const [visStartTime, setVisStartTime] = useState<number | null>(null);
   const [visEndTime, setVisEndTime] = useState<number | null>(null);
@@ -32,7 +42,7 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
     }
   }, [isGenerating, rawSteps.length]);
 
-  const queueLength = rawSteps.length - nextIndex;
+  const queueLength = Math.max(0, rawSteps.length - nextIndex);
   
   // Mark end time when caught up and model is done
   useEffect(() => {
@@ -44,38 +54,57 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
   }, [isGenerating, rawSteps.length, queueLength, stage, visEndTime]);
 
   const advancePhase = useCallback(() => {
-    if (stage === 'idle') {
-      if (nextIndex < rawSteps.length) {
-        setCurrentAnimStep(rawSteps[nextIndex]);
-        setStage('context');
+    setStage((currentStage) => {
+      if (currentStage === 'idle') {
+        const steps = rawStepsRef.current;
+        const idx = nextIndexRef.current;
+        if (idx < steps.length) {
+          setCurrentAnimStep(steps[idx]);
+          return 'context';
+        }
+        return 'idle';
+      } else if (currentStage === 'append') {
+        const animStep = currentAnimStepRef.current;
+        if (animStep) {
+          setVisualizedSteps((prev) => {
+            if (!prev.find((s) => s.index === animStep.index)) {
+              return [...prev, animStep];
+            }
+            return prev;
+          });
+        }
+        setNextIndex((prev) => prev + 1);
+        return 'idle';
+      } else {
+        const idx = STAGES.indexOf(currentStage);
+        return STAGES[idx + 1] as PipelineStage;
       }
-    } else if (stage === 'append') {
-      if (currentAnimStep) {
-        setVisualizedSteps(prev => {
-          if (!prev.find(s => s.index === currentAnimStep.index)) {
-            return [...prev, currentAnimStep];
-          }
-          return prev;
-        });
-      }
-      setNextIndex(prev => prev + 1);
+    });
+  }, []);
+
+  const jumpToLive = useCallback(() => {
+    const steps = rawStepsRef.current;
+    if (steps.length > 0) {
+      setVisualizedSteps(steps);
+      setNextIndex(steps.length);
+      setCurrentAnimStep(steps[steps.length - 1]);
       setStage('idle');
-    } else {
-      const idx = STAGES.indexOf(stage);
-      setStage(STAGES[idx + 1] as PipelineStage);
     }
-  }, [stage, nextIndex, rawSteps, currentAnimStep]);
+  }, []);
 
   const getDelayForStage = (currentStage: PipelineStage) => {
-    if (currentStage === 'idle') return 50; // Quick poll when idle and playing
+    if (currentStage === 'idle') return 30; // Quick wake-up poll when idle
     
+    if (speed === 'LIVE') {
+      return 5; // Near instantaneous in LIVE mode
+    }
+
     let baseTime = 800;
     switch (speed) {
       case '0.25x': baseTime = 3200; break;
       case '0.5x': baseTime = 1600; break;
       case '1x': baseTime = 800; break;
       case '2x': baseTime = 400; break;
-      case 'LIVE': return 20; // Blazing fast, essentially immediate
     }
 
     switch (currentStage) {
@@ -94,13 +123,13 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
     }
   };
 
+  // Main animation timer: Advances stage when active
   useEffect(() => {
     if (!isPlaying) return;
     
-    // If we are idle and queue is empty, just wait.
-    if (stage === 'idle' && queueLength === 0) {
-      const timer = setTimeout(() => {}, 100);
-      return () => clearTimeout(timer);
+    // If we are idle and queue is empty, do nothing until new tokens arrive
+    if (stage === 'idle' && nextIndex >= rawStepsRef.current.length) {
+      return;
     }
 
     const delay = getDelayForStage(stage);
@@ -109,7 +138,19 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [stage, isPlaying, queueLength, speed, advancePhase]);
+  }, [stage, isPlaying, speed, advancePhase]);
+
+  // Wake up visualizer when idle and new tokens arrive in queue (stable boolean trigger)
+  const hasQueuedTokens = rawSteps.length > nextIndex;
+  useEffect(() => {
+    if (!isPlaying) return;
+    if (stage === 'idle' && hasQueuedTokens) {
+      const timer = setTimeout(() => {
+        advancePhase();
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [hasQueuedTokens, isPlaying, stage, advancePhase]);
 
   const visualizationDuration = visStartTime 
     ? ((visEndTime || Date.now()) - visStartTime) / 1000 
@@ -127,6 +168,7 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
       setIsPlaying(false);
       advancePhase();
     },
+    jumpToLive,
     queueLength,
     baseTime: getDelayForStage('context') * (1/0.15), // estimate
     visualizationDuration,

@@ -109,14 +109,20 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedCell({ row: rIdx, col: cIdx })}
-                          className={`w-14 h-11 rounded-lg border flex flex-col items-center justify-center font-mono text-[11px] transition-all relative ${
+                          aria-label={
+                            isMasked
+                              ? `Position ${rIdx} "${qToken.display}" attending to future position ${cIdx} "${kToken.display}": Causally Masked`
+                              : `Attention weight from "${qToken.display}" to "${kToken.display}": ${(weight * 100).toFixed(0)}%`
+                          }
+                          aria-pressed={isSelected}
+                          className={`w-14 h-11 rounded-lg border flex flex-col items-center justify-center font-mono text-[11px] transition-all relative focus-ring cursor-pointer ${
                             getCellColor(weight, isMasked)
                           } ${
                             isSelected ? 'ring-2 ring-white shadow-[0_0_16px_rgba(255,255,255,0.4)] z-10' : ''
                           }`}
                         >
                           {isMasked ? (
-                            <Lock className="w-3 h-3 text-[#555]" />
+                            <Lock className="w-3 h-3 text-text-muted/70" />
                           ) : (
                             <>
                               <span>{(weight * 100).toFixed(0)}%</span>

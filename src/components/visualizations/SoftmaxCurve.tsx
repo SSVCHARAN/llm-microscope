@@ -45,7 +45,12 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
         </span>
       </div>
 
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible select-none my-1">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-auto overflow-visible select-none my-1"
+        role="img"
+        aria-label={`Exponential softmax curve at temperature ${temperature.toFixed(2)} displaying top token candidate probabilities`}
+      >
         <defs>
           <linearGradient id="softmaxCurveGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
@@ -72,13 +77,13 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
         />
 
         {/* Labels */}
-        <text x={padding} y={height - 10} className="font-mono text-[9px] fill-[#888]">
+        <text x={padding} y={height - 10} className="font-mono text-[9px] fill-[#A3A3A3]">
           Logit 4.0
         </text>
-        <text x={width - padding - 35} y={height - 10} className="font-mono text-[9px] fill-[#888]">
+        <text x={width - padding - 35} y={height - 10} className="font-mono text-[9px] fill-[#A3A3A3]">
           Logit 8.5
         </text>
-        <text x={padding - 20} y={padding + 5} className="font-mono text-[9px] fill-[#888]" textAnchor="end">
+        <text x={padding - 10} y={padding - 5} className="font-mono text-[9px] fill-[#A3A3A3]" textAnchor="end">
           exp(z)
         </text>
 
@@ -92,12 +97,14 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
         />
 
         {/* Dots for top candidates */}
-        {candidates.slice(0, 5).map((cand) => {
+        {candidates.slice(0, 5).map((cand, idx) => {
           const clampedLogit = Math.max(minX, Math.min(maxX, cand.logit));
           const yVal = Math.exp(clampedLogit / Math.max(0.1, temperature));
           const svgX = padding + ((clampedLogit - minX) / (maxX - minX)) * (width - 2 * padding);
           const svgY = height - padding - (yVal / maxExp) * (height - 2 * padding);
           const isWinner = cand.token === ' mat';
+          // Stagger vertical text offset to avoid overlapping crowded points
+          const textOffsetY = isWinner ? -10 : idx % 2 === 0 ? -9 : 14;
 
           return (
             <g key={cand.token}>
@@ -109,9 +116,9 @@ export const SoftmaxCurve: React.FC<SoftmaxCurveProps> = ({ candidates, temperat
               />
               <text
                 x={svgX}
-                y={svgY - 9}
+                y={svgY + textOffsetY}
                 textAnchor="middle"
-                className={`font-mono text-[9px] ${isWinner ? 'fill-emerald-300 font-extrabold' : 'fill-white font-medium'}`}
+                className={`font-mono text-[9px] ${isWinner ? 'fill-emerald-300 font-extrabold' : 'fill-[#E2E8F0] font-medium'}`}
               >
                 {cand.display}
               </text>

@@ -1,18 +1,29 @@
-import { TokenChoice } from '../types';
+import { TokenChoice } from '../types/index.ts';
 import mockTraceData from '../data/mockTrace.json';
 
-export const API_BASE = '/lmstudio';
+let resolvedApiBase = '/lmstudio';
+
+export function getApiBase(): string {
+  return resolvedApiBase;
+}
 
 export async function fetchModels(): Promise<string[]> {
-  try {
-    const res = await fetch(`${API_BASE}/v1/models`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data.data.map((m: any) => m.id);
-  } catch (err) {
-    console.warn('Failed to fetch models from LM Studio, falling back to mock data', err);
-    return ['mock-model'];
+  const candidateBases = ['/lmstudio', 'http://127.0.0.1:1234'];
+  for (const base of candidateBases) {
+    try {
+      const res = await fetch(`${base}/v1/models`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.data)) {
+          resolvedApiBase = base;
+          return data.data.map((m: any) => m.id);
+        }
+      }
+    } catch {
+      // Continue to next candidate
+    }
   }
+  return ['mock-model'];
 }
 
 export interface StreamCallbacks {
@@ -46,7 +57,7 @@ export class GenerationController {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/v1/chat/completions`, {
+      const res = await fetch(`${getApiBase()}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: this.abortController.signal,
@@ -106,7 +117,11 @@ export class GenerationController {
 
               if (parsed.choices && parsed.choices.length > 0) {
                 const choice = parsed.choices[0];
-                const text = choice.delta?.content || '';
+                const delta = choice.delta || {};
+                const text =
+                  delta.content && delta.reasoning_content
+                    ? `${delta.reasoning_content}${delta.content}`
+                    : (delta.content ?? delta.reasoning_content ?? delta.reasoning ?? delta.thought ?? choice.text ?? '');
                 
                 let tokenLogprob: TokenChoice | null = null;
                 if (choice.logprobs?.content?.length > 0) {
@@ -167,7 +182,7 @@ export class GenerationController {
       }
       
       if (this.abortController) {
-        callbacks.onUsage({ prompt_tokens: 14, completion_tokens: tokenCount });
+        callbacks.onUsage({ prompt_tokens: 24, completion_tokens: tokenCount });
         callbacks.onEvent('stream_done', { type: 'done' });
         callbacks.onComplete();
         this.abortController = null;

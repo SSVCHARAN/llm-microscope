@@ -21,21 +21,16 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
 
   const selectedColumn = unembeddingData.columns[selectedWordIndex];
 
-  // Calculate live conversion values for the candidate table
   const temp = Math.max(0.05, temperature);
   
-  // High candidates + negative probes
-  const tableTokens = [
-    ...candidates.slice(0, 5),
+  // Combine top candidates with negative probes for educational contrast
+  const allProbeLogits = [
+    ...candidates.slice(0, 5).map(c => ({ ...c, isWinner: c.token === ' mat' })),
     {
       rank: 50256,
       token: ' quantum',
       display: '␣quantum',
       logit: -3.24,
-      scaledLogit: -3.24 / temp,
-      expVal: Math.exp(-3.24 / temp),
-      probability: 0.00001,
-      logprob: -11.5,
       isWinner: false
     },
     {
@@ -43,13 +38,27 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
       token: ' banana',
       display: '␣banana',
       logit: -4.38,
-      scaledLogit: -4.38 / temp,
-      expVal: Math.exp(-4.38 / temp),
-      probability: 0.000001,
-      logprob: -13.8,
       isWinner: false
     }
   ];
+
+  // Numerically stable softmax: subtract max logit before exponentiating
+  const maxProbeLogit = Math.max(...allProbeLogits.map(p => p.logit / temp));
+  const probeExps = allProbeLogits.map(p => Math.exp(Math.min(70, Math.max(-70, (p.logit / temp) - maxProbeLogit))));
+  const probeSumExp = probeExps.reduce((acc, v) => acc + v, 0);
+
+  const tableTokens = allProbeLogits.map((item, idx) => {
+    const scaled = item.logit / temp;
+    const rawExp = Math.exp(Math.min(70, Math.max(-70, scaled)));
+    const prob = probeExps[idx] / Math.max(1e-9, probeSumExp);
+    return {
+      ...item,
+      scaledLogit: scaled,
+      expVal: rawExp,
+      probability: prob,
+      logprob: Math.log(Math.max(1e-12, prob))
+    };
+  });
 
   return (
     <div className="flex flex-col gap-8 w-full">
@@ -227,8 +236,12 @@ export const SoftmaxStage: React.FC<SoftmaxStageProps> = ({
               max="2.0"
               step="0.05"
               value={temperature}
+              aria-label="Temperature scaling parameter (T)"
+              aria-valuemin={0.1}
+              aria-valuemax={2.0}
+              aria-valuenow={temperature}
               onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
-              className="w-32 accent-emerald-400 cursor-pointer"
+              className="w-32 accent-emerald-400 cursor-pointer focus-ring rounded"
             />
             <span title="High Temperature (Creative / Random)">
               <Flame className="w-4 h-4 text-rose-400 shrink-0" />

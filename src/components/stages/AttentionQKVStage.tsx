@@ -43,13 +43,23 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Search Engine Analogy Hero Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="region" aria-label="Attention Projection Types">
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={isQ}
+          aria-label="Select Query projection"
           onClick={() => setSelectedProjection('q')}
-          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer ${
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSelectedProjection('q');
+            }
+          }}
+          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer focus-ring ${
             isQ
               ? 'border-indigo-500/60 bg-indigo-500/[0.12] ring-1 ring-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-              : 'border-indigo-500/30 bg-indigo-500/[0.04] hover:bg-indigo-500/[0.08]'
+              : 'border-surface-border bg-surface hover:bg-white/[0.04]'
           }`}
         >
           <div className="flex items-center justify-between text-indigo-400 font-mono text-[12px] font-bold">
@@ -59,18 +69,28 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
             </div>
             {isQ && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
           </div>
-          <span className="text-[13px] font-semibold text-white">"What am I looking for?"</span>
-          <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+          <span className="text-[13px] font-semibold text-text">"What am I looking for?"</span>
+          <p className="text-[11px] leading-relaxed text-text-muted">
             The question this token asks the rest of the sentence. (e.g., The verb <em>"sat"</em> queries: <em>"Who performed the action of sitting?"</em>)
           </p>
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={isK}
+          aria-label="Select Key projection"
           onClick={() => setSelectedProjection('k')}
-          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer ${
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSelectedProjection('k');
+            }
+          }}
+          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer focus-ring ${
             isK
               ? 'border-emerald-500/60 bg-emerald-500/[0.12] ring-1 ring-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
-              : 'border-emerald-500/30 bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]'
+              : 'border-surface-border bg-surface hover:bg-white/[0.04]'
           }`}
         >
           <div className="flex items-center justify-between text-emerald-400 font-mono text-[12px] font-bold">
@@ -80,18 +100,28 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
             </div>
             {isK && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
           </div>
-          <span className="text-[13px] font-semibold text-white">"What information do I hold?"</span>
-          <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+          <span className="text-[13px] font-semibold text-text">"What information do I hold?"</span>
+          <p className="text-[11px] leading-relaxed text-text-muted">
             The index label or tag. (e.g., The noun <em>"cat"</em> offers: <em>"I am a feline creature that can sit!"</em> Matches between Q and K create attention).
           </p>
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-pressed={isV}
+          aria-label="Select Value projection"
           onClick={() => setSelectedProjection('v')}
-          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer ${
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setSelectedProjection('v');
+            }
+          }}
+          className={`flex flex-col gap-2 p-4 rounded-xl border transition-all cursor-pointer focus-ring ${
             isV
               ? 'border-cyan-500/60 bg-cyan-500/[0.12] ring-1 ring-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-              : 'border-cyan-500/30 bg-cyan-500/[0.04] hover:bg-cyan-500/[0.08]'
+              : 'border-surface-border bg-surface hover:bg-white/[0.04]'
           }`}
         >
           <div className="flex items-center justify-between text-cyan-400 font-mono text-[12px] font-bold">
@@ -101,16 +131,16 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
             </div>
             {isV && <CheckCircle2 className="w-4 h-4 text-cyan-400" />}
           </div>
-          <span className="text-[13px] font-semibold text-white">"What content do I transmit?"</span>
-          <p className="text-[11px] leading-relaxed text-[#B0B0B0]">
+          <span className="text-[13px] font-semibold text-text">"What content do I transmit?"</span>
+          <p className="text-[11px] leading-relaxed text-text-muted">
             The actual semantic payload. When a high match occurs between Q and K, the model copies a large portion of V into the next layer!
           </p>
         </div>
       </div>
 
       {/* Token Selector */}
-      <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border border-white/[0.08] bg-black/40">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-[#888] pr-2">
+      <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border border-surface-border bg-surface" role="tablist" aria-label="Tokens for projection inspection">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-text-muted pr-2">
           Select Token to Inspect Projections:
         </span>
         {tokens.map((t, idx) => {
@@ -118,11 +148,14 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
           return (
             <button
               key={t.id}
+              role="tab"
+              aria-selected={isSelected}
+              aria-label={`Inspect projections for token ${t.display}`}
               onClick={() => setSelectedIdx(idx)}
-              className={`px-3 py-1.5 rounded-lg font-mono text-[12px] font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-mono text-[12px] font-medium transition-all focus-ring ${
                 isSelected
-                  ? 'bg-emerald-500 text-black font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-                  : 'bg-white/[0.04] text-[#A0A0A0] hover:text-white hover:bg-white/[0.08]'
+                  ? 'bg-primary text-black font-bold shadow-[0_0_16px_rgba(16,185,129,0.3)]'
+                  : 'bg-white/[0.04] text-text-muted hover:text-text hover:bg-white/[0.08]'
               }`}
             >
               {t.display}
@@ -131,12 +164,12 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
         })}
       </div>
 
-      {/* Primary Mathematical Operations Section (like Stage 2) */}
-      <div className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-black/50 p-6 shadow-2xl">
+      {/* Primary Mathematical Operations Section */}
+      <div className="flex flex-col gap-4 rounded-xl border border-surface-border bg-surface p-6 shadow-2xl">
         {/* Header & Sub-Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-border pb-4">
           <div className="flex flex-col gap-1">
-            <span className="text-[13px] font-mono uppercase tracking-wider text-white font-bold">
+            <span className="text-[13px] font-mono uppercase tracking-wider text-text font-bold">
               PROJECTIONS FOR TOKEN: "{currentToken.display}"
             </span>
             <span className="text-[11px] font-mono text-emerald-400">
@@ -145,33 +178,42 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
           </div>
 
           {/* Projection Type Switcher Tabs */}
-          <div className="flex items-center p-1 rounded-lg bg-black/60 border border-white/10 gap-1 self-start sm:self-auto">
+          <div className="flex items-center p-1 rounded-lg bg-black/60 border border-white/10 gap-1 self-start sm:self-auto" role="tablist" aria-label="Projection Type Tabs">
             <button
+              role="tab"
+              aria-selected={isQ}
+              aria-label="Query projection tab"
               onClick={() => setSelectedProjection('q')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
                 isQ
                   ? 'bg-indigo-500 text-white font-bold shadow-[0_0_12px_rgba(99,102,241,0.4)]'
-                  : 'text-[#A0A0A0] hover:text-white'
+                  : 'text-text-muted hover:text-text'
               }`}
             >
               Query (x · W_Q)
             </button>
             <button
+              role="tab"
+              aria-selected={isK}
+              aria-label="Key projection tab"
               onClick={() => setSelectedProjection('k')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
                 isK
-                  ? 'bg-emerald-500 text-black font-bold shadow-[0_0_12px_rgba(16,185,129,0.4)]'
-                  : 'text-[#A0A0A0] hover:text-white'
+                  ? 'bg-primary text-black font-bold shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                  : 'text-text-muted hover:text-text'
               }`}
             >
               Key (x · W_K)
             </button>
             <button
+              role="tab"
+              aria-selected={isV}
+              aria-label="Value projection tab"
               onClick={() => setSelectedProjection('v')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all focus-ring ${
                 isV
                   ? 'bg-cyan-500 text-black font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]'
-                  : 'text-[#A0A0A0] hover:text-white'
+                  : 'text-text-muted hover:text-text'
               }`}
             >
               Value (x · W_V)
@@ -236,18 +278,28 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
         />
 
         {/* Summary of all 3 vectors side-by-side */}
-        <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-col gap-3">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-[#A0A0A0]">
+        <div className="mt-4 pt-4 border-t border-surface-border flex flex-col gap-3">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-text-muted">
             Resulting Q, K, V Projections for "{currentToken.display}":
           </span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3" role="region" aria-label="Projection Summary">
             {/* Q Box */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-pressed={isQ}
+              aria-label="Inspect Query vector"
               onClick={() => setSelectedProjection('q')}
-              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedProjection('q');
+                }
+              }}
+              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer focus-ring ${
                 isQ
                   ? 'bg-indigo-500/10 border-indigo-500/50 ring-1 ring-indigo-500/40'
-                  : 'bg-black/40 border-white/[0.06] hover:bg-white/[0.02]'
+                  : 'bg-surface border-surface-border hover:bg-white/[0.04]'
               }`}
             >
               <span className="text-[11px] font-mono font-bold text-indigo-300">
@@ -264,11 +316,21 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
 
             {/* K Box */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-pressed={isK}
+              aria-label="Inspect Key vector"
               onClick={() => setSelectedProjection('k')}
-              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedProjection('k');
+                }
+              }}
+              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer focus-ring ${
                 isK
                   ? 'bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/40'
-                  : 'bg-black/40 border-white/[0.06] hover:bg-white/[0.02]'
+                  : 'bg-surface border-surface-border hover:bg-white/[0.04]'
               }`}
             >
               <span className="text-[11px] font-mono font-bold text-emerald-300">
@@ -285,11 +347,21 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
 
             {/* V Box */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-pressed={isV}
+              aria-label="Inspect Value vector"
               onClick={() => setSelectedProjection('v')}
-              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedProjection('v');
+                }
+              }}
+              className={`flex flex-col gap-2 p-3 rounded-lg border transition-all cursor-pointer focus-ring ${
                 isV
                   ? 'bg-cyan-500/10 border-cyan-500/50 ring-1 ring-cyan-500/40'
-                  : 'bg-black/40 border-white/[0.06] hover:bg-white/[0.02]'
+                  : 'bg-surface border-surface-border hover:bg-white/[0.04]'
               }`}
             >
               <span className="text-[11px] font-mono font-bold text-cyan-300">
@@ -307,8 +379,8 @@ export const AttentionQKVStage: React.FC<AttentionQKVStageProps> = ({
         </div>
 
         {/* Matrix Multiplication Formula Card */}
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-black/60 border border-white/[0.06] text-[12px] font-mono text-[#A0A0A0] overflow-x-auto mt-2">
-          <span className="text-white font-semibold">Next Step:</span>
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-black/60 border border-surface-border text-[12px] font-mono text-text-secondary overflow-x-auto mt-2">
+          <span className="text-text font-semibold">Next Step:</span>
           <span>Score(i, j) = (Q_i · K_j) / √d_k</span>
           <ArrowRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <span className="text-emerald-400">Yields the 5×5 Attention Matrix shown in Stage 4!</span>

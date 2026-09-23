@@ -47,8 +47,12 @@ export const SamplingStage: React.FC<SamplingStageProps> = ({
               max="8"
               step="1"
               value={topK}
+              aria-label="Top-K truncation filter parameter"
+              aria-valuemin={1}
+              aria-valuemax={8}
+              aria-valuenow={topK}
               onChange={(e) => onTopKChange(parseInt(e.target.value))}
-              className="w-48 accent-emerald-400 cursor-pointer"
+              className="w-48 accent-emerald-400 cursor-pointer focus-ring rounded"
             />
             <span className="text-[12px] font-mono text-emerald-300 font-bold">
               Top {topK} Candidates
