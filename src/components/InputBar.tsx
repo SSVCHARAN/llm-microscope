@@ -35,13 +35,13 @@ export const InputBar: React.FC<InputBarProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Prompt showcase */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 h-8 px-3 rounded-lg bg-surface-raised border border-border shadow-sm">
+            <div className="flex items-center gap-2 h-9 px-3.5 rounded-xl bg-surface-raised border border-border shadow-sm">
               <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted">Prompt</span>
               <span className="text-[13px] font-medium text-text-main tracking-tight">"{prompt}"</span>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">→ ?</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
+            <div className="hidden sm:flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Interactive Walkthrough</span>
             </div>

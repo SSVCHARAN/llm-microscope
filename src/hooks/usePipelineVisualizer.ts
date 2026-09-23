@@ -99,27 +99,27 @@ export function usePipelineVisualizer(rawSteps: GenerationStep[], isGenerating: 
       return 5; // Near instantaneous in LIVE mode
     }
 
-    let baseTime = 800;
+    let baseTime = 900;
     switch (speed) {
       case '0.25x': baseTime = 3200; break;
       case '0.5x': baseTime = 1600; break;
-      case '1x': baseTime = 800; break;
-      case '2x': baseTime = 400; break;
+      case '1x': baseTime = 900; break;
+      case '2x': baseTime = 450; break;
     }
 
     switch (currentStage) {
-      case 'context': return baseTime * 0.15;
-      case 'inference': return baseTime * 0.15;
-      case 'logits': return baseTime * 0.15;
-      case 'prob_receive': return baseTime * 0.5; // ~400ms at 1x
-      case 'prob_reveal': return baseTime * 0.625; // ~500ms at 1x
-      case 'prob_identify': return baseTime * 0.375; // ~300ms at 1x
-      case 'prob_reorder': return baseTime * 0.75; // ~600ms at 1x
-      case 'prob_handoff': return baseTime * 0.375; // ~300ms at 1x
-      case 'selection': return baseTime * 0.15;
-      case 'token': return baseTime * 0.10;
-      case 'append': return baseTime * 0.05;
-      default: return baseTime * 0.1;
+      case 'context': return baseTime * 0.35; // ~315ms at 1x - clearly highlight context buffer
+      case 'inference': return baseTime * 0.40; // ~360ms at 1x - show 768-D vectors and transformer computation
+      case 'logits': return baseTime * 0.30; // ~270ms at 1x - show vocabulary logits
+      case 'prob_receive': return baseTime * 0.40; // ~360ms at 1x
+      case 'prob_reveal': return baseTime * 0.50; // ~450ms at 1x
+      case 'prob_identify': return baseTime * 0.35; // ~315ms at 1x
+      case 'prob_reorder': return baseTime * 0.55; // ~495ms at 1x
+      case 'prob_handoff': return baseTime * 0.30; // ~270ms at 1x
+      case 'selection': return baseTime * 0.35; // ~315ms at 1x - show winning candidate pick
+      case 'token': return baseTime * 0.30; // ~270ms at 1x - show token
+      case 'append': return baseTime * 0.25; // ~225ms at 1x - append to sequence
+      default: return baseTime * 0.15;
     }
   };
 

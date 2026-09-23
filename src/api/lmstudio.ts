@@ -159,8 +159,8 @@ export class GenerationController {
       for (const step of mockTraceData) {
         if (!this.abortController) return;
         
-        // Simulate a very realistic latency for a fast 0.5B model on an i5 CPU (~25-40ms per token)
-        await new Promise(r => setTimeout(r, 25 + Math.random() * 20));
+        // Simulate realistic latency (~60-90ms per token for flight recorder mock stream)
+        await new Promise(r => setTimeout(r, 60 + Math.random() * 30));
         if (!this.abortController) return;
         
         const tokenText = step.tokenText;
