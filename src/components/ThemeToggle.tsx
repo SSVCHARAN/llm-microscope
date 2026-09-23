@@ -15,7 +15,7 @@ export const ThemeToggle: React.FC = () => {
     <div
       role="radiogroup"
       aria-label="Theme mode selection"
-      className="flex items-center p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm"
+      className="flex items-center h-9 p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm shrink-0"
     >
       {options.map((opt) => {
         const isActive = theme === opt.value;
@@ -27,9 +27,9 @@ export const ThemeToggle: React.FC = () => {
             aria-label={opt.label}
             title={`${opt.label}${opt.value === 'system' ? ` (currently ${resolvedTheme})` : ''}`}
             onClick={() => setTheme(opt.value)}
-            className={`flex items-center justify-center p-1.5 sm:px-2 sm:py-1 rounded-lg transition-all focus-ring ${
+            className={`flex items-center justify-center h-7 px-2 sm:px-2.5 rounded-lg transition-all focus-ring ${
               isActive
-                ? 'bg-primary text-black font-bold shadow-[0_0_12px_rgba(5,150,105,0.3)] dark:shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_12px_rgba(5,150,105,0.3)] dark:shadow-[0_0_12px_rgba(16,185,129,0.3)]'
                 : 'text-text-muted hover:text-text-main hover:bg-surface-subtle'
             }`}
           >

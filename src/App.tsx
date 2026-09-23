@@ -233,29 +233,27 @@ export function App() {
       {/* Main Top Header Navigation */}
       <header className="w-full max-w-7xl h-16 px-4 sm:px-6 flex items-center justify-between border-b border-border relative z-30 bg-background/90 backdrop-blur-md shadow-sm">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white dark:text-black shadow-[0_0_16px_rgba(5,150,105,0.3)] dark:shadow-[0_0_16px_rgba(16,185,129,0.4)]">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white dark:text-black shadow-[0_0_16px_rgba(5,150,105,0.3)] dark:shadow-[0_0_16px_rgba(16,185,129,0.4)] shrink-0">
             <Microscope className="w-4 h-4" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <h1 className="font-bold text-[14px] sm:text-[15px] tracking-tight text-text-main font-mono">
-                LLM Microscope
-              </h1>
-              <span className="hidden sm:inline text-[9px] font-mono uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Observability Instrument
-              </span>
-            </div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="font-bold text-[14px] sm:text-[15px] tracking-tight text-text-main font-mono whitespace-nowrap">
+              LLM Microscope
+            </h1>
+            <span className="hidden sm:inline-flex items-center h-5 text-[9px] font-mono uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 rounded border border-emerald-500/20 whitespace-nowrap leading-none">
+              Observability Instrument
+            </span>
           </div>
         </div>
 
         {/* Primary View Switcher: Walkthrough vs Live Loop */}
-        <div className="flex items-center p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm">
+        <div className="flex items-center h-9 p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm shrink-0">
           <button
             onClick={() => setAppMode('architecture')}
             role="tab"
             aria-selected={appMode === 'architecture'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all focus-ring ${
+            className={`flex items-center gap-1.5 h-7 px-3 rounded-lg whitespace-nowrap transition-all focus-ring ${
               appMode === 'architecture'
                 ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
                 : 'text-text-muted hover:text-text-main'
@@ -271,7 +269,7 @@ export function App() {
             onClick={() => setAppMode('live_loop')}
             role="tab"
             aria-selected={appMode === 'live_loop'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all focus-ring ${
+            className={`flex items-center gap-1.5 h-7 px-3 rounded-lg whitespace-nowrap transition-all focus-ring ${
               appMode === 'live_loop'
                 ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
                 : 'text-text-muted hover:text-text-main'
@@ -285,17 +283,18 @@ export function App() {
         </div>
 
         {/* Right Section: Telemetry Badge + Theme Toggle */}
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-3">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="hidden lg:flex items-center">
             {appMode === 'architecture' ? (
-              <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-surface-raised px-3 py-1.5 rounded-lg border border-border">
-                <Cpu className="w-3.5 h-3.5 text-primary" />
-                <span>GPT-2 Forward Pass (d=768)</span>
+              <div className="flex items-center gap-2 h-9 px-3 rounded-xl text-[11px] font-mono text-text-muted bg-surface-raised border border-border whitespace-nowrap shadow-sm">
+                <Cpu className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="hidden xl:inline">GPT-2 Forward Pass (d=768)</span>
+                <span className="xl:hidden">GPT-2 (d=768)</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted bg-surface-raised px-3 py-1.5 rounded-lg border border-border">
+              <div className="flex items-center gap-2 h-9 px-3 rounded-xl text-[11px] font-mono text-text-muted bg-surface-raised border border-border whitespace-nowrap shadow-sm">
                 <span
-                  className={`w-2 h-2 rounded-full ${
+                  className={`w-2 h-2 rounded-full shrink-0 ${
                     microscope.isGenerating
                       ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]'
                       : microscope.isConnected
@@ -303,7 +302,7 @@ export function App() {
                       : 'bg-amber-400'
                   }`}
                 />
-                <span className="text-text-main font-medium">
+                <span className="text-text-main font-medium whitespace-nowrap">
                   {microscope.engineType === 'trace'
                     ? 'Flight Recorder Trace'
                     : microscope.engineType === 'webworker'

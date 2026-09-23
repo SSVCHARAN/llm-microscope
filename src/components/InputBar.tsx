@@ -35,14 +35,14 @@ export const InputBar: React.FC<InputBarProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Prompt showcase */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-raised border border-border">
+            <div className="flex items-center gap-2 h-8 px-3 rounded-lg bg-surface-raised border border-border shadow-sm">
               <span className="text-[10px] font-mono uppercase tracking-widest text-text-muted">Prompt</span>
               <span className="text-[13px] font-medium text-text-main tracking-tight">"{prompt}"</span>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">→ ?</span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md">
-              <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+            <div className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Interactive Walkthrough</span>
             </div>
           </div>
@@ -60,7 +60,7 @@ export const InputBar: React.FC<InputBarProps> = ({
                 role="tab"
                 aria-selected={isActive}
                 aria-current={isActive ? 'step' : undefined}
-                className={`relative flex-1 min-w-[125px] flex flex-col gap-0 py-1.5 px-2.5 rounded-md text-left transition-all border focus-ring overflow-hidden ${
+                className={`relative flex-1 min-w-[125px] h-9 flex items-center px-2.5 rounded-lg text-left transition-all border focus-ring overflow-hidden ${
                   isActive
                     ? 'bg-emerald-500/10 border-emerald-500/50 text-text-main shadow-[0_0_12px_rgba(5,150,105,0.15)] dark:shadow-[0_0_12px_rgba(16,185,129,0.15)] font-semibold'
                     : isCompleted
