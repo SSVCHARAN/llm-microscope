@@ -9,6 +9,7 @@ import { InputBar, STAGE_SHORT_LABELS } from './components/InputBar';
 import { StageHeader } from './components/StageHeader';
 import { ExplainerCard } from './components/ExplainerCard';
 import { ThemeToggle } from './components/ThemeToggle';
+import { AboutModal } from './components/AboutModal';
 
 // 7 Educational Stages (Mode: Architecture Walkthrough)
 import { TokenizationStage } from './components/stages/TokenizationStage';
@@ -43,7 +44,8 @@ import {
   Radio,
   CheckCircle2,
   AlertCircle,
-  Clock
+  Clock,
+  HelpCircle
 } from 'lucide-react';
 
 export type AppMode = 'architecture' | 'live_loop';
@@ -59,6 +61,18 @@ export function App() {
   });
   const [selectedInspectStep, setSelectedInspectStep] = useState<number | null>(null);
   const [showTokenBoundaries, setShowTokenBoundaries] = useState<boolean>(true);
+
+  // First-visit onboarding / About guide modal state
+  const [showAboutModal, setShowAboutModal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('about') === 'true') return true;
+      if (params.get('about') === 'false') return false;
+      const dismissed = localStorage.getItem('llm_microscope_onboarding_dismissed');
+      return dismissed !== 'true';
+    }
+    return false;
+  });
 
   // Architecture Walkthrough Controller
   const stageCtrl = useStageController();
@@ -335,6 +349,17 @@ export function App() {
                 </div>
               )}
             </div>
+
+            {/* Field Guide & About Modal Button */}
+            <button
+              onClick={() => setShowAboutModal(true)}
+              title="About LLM Microscope & Field Guide"
+              aria-label="About LLM Microscope & Field Guide"
+              className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-text-main bg-surface-raised border border-border hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="hidden sm:inline">Guide</span>
+            </button>
 
             {/* Theme Toggle Button (Magic UI Animated Theme Toggler) */}
             <ThemeToggle />
@@ -653,6 +678,12 @@ export function App() {
           </main>
         </div>
       )}
+
+      {/* First-Visit Onboarding & Field Guide Modal */}
+      <AboutModal
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
+      />
     </div>
   );
 }

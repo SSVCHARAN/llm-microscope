@@ -17,6 +17,9 @@ const THEME_STORAGE_KEY = 'llm-microscope-theme';
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'system';
   try {
+    const params = new URLSearchParams(window.location.search);
+    const themeParam = params.get('theme');
+    if (themeParam === 'dark' || themeParam === 'light') return themeParam;
     const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem('theme');
     if (saved === 'light' || saved === 'dark' || saved === 'system') {
       return saved as Theme;
