@@ -4,6 +4,12 @@ import { GenerationController, fetchModels } from '../api/lmstudio';
 
 export type EngineType = 'trace' | 'lmstudio' | 'webworker';
 
+export const ONNX_MODELS = [
+  'HuggingFaceTB/SmolLM2-135M-Instruct',
+  'Xenova/gpt2',
+  'Xenova/LaMini-GPT-124M'
+];
+
 export function useMicroscope() {
   const [engineType, setEngineType] = useState<EngineType>('trace');
   const [prompt, setPrompt] = useState('The cat sat on the');
@@ -16,6 +22,8 @@ export function useMicroscope() {
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
 
   // Web Worker state
+  const [selectedOnnxModel, setSelectedOnnxModel] = useState<string>('HuggingFaceTB/SmolLM2-135M-Instruct');
+  const selectedOnnxModelRef = useRef<string>('HuggingFaceTB/SmolLM2-135M-Instruct');
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState<{ file: string; progress: number } | null>(null);
   const [engineError, setEngineError] = useState<string | null>(null);
@@ -88,7 +96,7 @@ export function useMicroscope() {
       const w = new Worker(new URL('../worker.ts', import.meta.url), { type: 'module' });
       workerRef.current = w;
 
-      w.postMessage({ action: 'load' });
+      w.postMessage({ action: 'load', modelId: selectedOnnxModelRef.current });
 
       w.onmessage = (event) => {
         const msg = event.data;
@@ -99,7 +107,7 @@ export function useMicroscope() {
           setIsEngineReady(true);
           setLoadingProgress(null);
           setEngineError(null);
-          appendEvent('worker_ready', { model: 'Xenova/LaMini-GPT-124M' });
+          appendEvent('worker_ready', { model: msg.model || selectedOnnxModelRef.current });
         } else if (msg.status === 'error') {
           setEngineError(msg.error);
           setLoadingProgress(null);
@@ -328,12 +336,38 @@ export function useMicroscope() {
 
   const isConnected = engineType === 'lmstudio' ? isLmStudioConnected : engineType === 'webworker' ? isEngineReady : true;
 
+  const models = engineType === 'lmstudio'
+    ? lmStudioModels
+    : engineType === 'webworker'
+    ? ONNX_MODELS
+    : ['Showcase Mock Trace'];
+
+  const currentSelectedModel = engineType === 'webworker'
+    ? selectedOnnxModel
+    : engineType === 'lmstudio'
+    ? selectedModel
+    : 'mock-model';
+
+  const handleSetSelectedModel = useCallback((model: string) => {
+    if (engineType === 'webworker') {
+      setSelectedOnnxModel(model);
+      selectedOnnxModelRef.current = model;
+      setIsEngineReady(false);
+      setLoadingProgress({ file: model.split('/').pop() || model, progress: 0 });
+      if (workerRef.current) {
+        workerRef.current.postMessage({ action: 'load', modelId: model });
+      }
+    } else {
+      setSelectedModel(model);
+    }
+  }, [engineType]);
+
   return {
     engineType,
     setEngineType,
-    models: engineType === 'lmstudio' ? lmStudioModels : engineType === 'webworker' ? ['Xenova/LaMini-GPT-124M'] : ['Showcase Mock Trace'],
-    selectedModel,
-    setSelectedModel,
+    models,
+    selectedModel: currentSelectedModel,
+    setSelectedModel: handleSetSelectedModel,
     isConnected,
     isLmStudioConnected,
     isCheckingConnection,

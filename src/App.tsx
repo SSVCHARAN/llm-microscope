@@ -330,7 +330,7 @@ export function App() {
                     {microscope.engineType === 'trace'
                       ? 'Flight Recorder Trace'
                       : microscope.engineType === 'webworker'
-                      ? 'ONNX LaMini 124M'
+                      ? `ONNX: ${microscope.selectedModel.split('/').pop() || 'SmolLM2 135M'}`
                       : microscope.isLmStudioConnected
                       ? 'LM Studio Connected'
                       : 'LM Studio Disconnected'}
@@ -542,18 +542,18 @@ export function App() {
                   </button>
                 )}
 
-                {microscope.engineType === 'lmstudio' && microscope.isLmStudioConnected && microscope.models.length > 0 && (
+                {((microscope.engineType === 'lmstudio' && microscope.isLmStudioConnected) || microscope.engineType === 'webworker') && microscope.models.length > 0 && (
                   <div className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl bg-surface-raised border border-emerald-500/30 text-[11px] font-mono shadow-sm">
                     <span className="text-emerald-700 dark:text-emerald-400 font-bold hidden sm:inline">Model:</span>
                     <select
                       value={microscope.selectedModel}
                       onChange={(e) => microscope.setSelectedModel(e.target.value)}
-                      aria-label="Select LM Studio model"
-                      className="bg-transparent text-emerald-800 dark:text-emerald-300 font-semibold focus:outline-none cursor-pointer"
+                      aria-label="Select model"
+                      className="bg-transparent text-emerald-800 dark:text-emerald-300 font-semibold focus:outline-none cursor-pointer max-w-[190px] truncate"
                     >
                       {microscope.models.map((m) => (
                         <option key={m} value={m} className="bg-surface text-text-main">
-                          {m}
+                          {m.includes('SmolLM') ? 'SmolLM2-135M (Smart)' : m.split('/').pop() || m}
                         </option>
                       ))}
                     </select>
@@ -621,7 +621,10 @@ export function App() {
                 <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-800 dark:text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-lg">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0 text-cyan-600 dark:text-cyan-400" />
                   <span>
-                    Loading ONNX model weights into browser: {microscope.loadingProgress.file} ({microscope.loadingProgress.progress.toFixed(0)}%)
+                    Loading ONNX model weights into browser: {microscope.loadingProgress.file}{' '}
+                    {typeof microscope.loadingProgress.progress === 'number' && !isNaN(microscope.loadingProgress.progress) && microscope.loadingProgress.progress > 0
+                      ? `(${microscope.loadingProgress.progress.toFixed(0)}%)`
+                      : ''}
                   </span>
                 </div>
               </div>

@@ -1,33 +1,78 @@
 import { AutoTokenizer, AutoModelForCausalLM, env, Tensor } from '@huggingface/transformers';
 
-// Tell transformers.js to load from the local public/models directory
+// Configure transformers.js to load models from public /models/ with remote fallback
 env.allowLocalModels = true;
 env.useBrowserCache = false;
-env.allowRemoteModels = false;
+env.allowRemoteModels = true;
 env.localModelPath = '/models/';
+
+interface ModelPreset {
+    id: string;
+    dtype?: string;
+    model_file_name?: string;
+}
+
+const MODEL_PRESETS: Record<string, ModelPreset> = {
+    'HuggingFaceTB/SmolLM2-135M-Instruct': {
+        id: 'HuggingFaceTB/SmolLM2-135M-Instruct',
+        dtype: 'q4'
+    },
+    'Xenova/gpt2': {
+        id: 'Xenova/gpt2',
+        dtype: 'fp32',
+        model_file_name: 'decoder_model_merged_quantized'
+    },
+    'Xenova/LaMini-GPT-124M': {
+        id: 'Xenova/LaMini-GPT-124M',
+        dtype: 'fp32',
+        model_file_name: 'decoder_model_merged_quantized'
+    }
+};
+
+const DEFAULT_MODEL_ID = 'HuggingFaceTB/SmolLM2-135M-Instruct';
 
 let tokenizer: any = null;
 let model: any = null;
-const modelId = 'Xenova/LaMini-GPT-124M';
+let currentModelId = '';
+let isAborted = false;
 
 self.addEventListener('message', async (event) => {
-    const { action, text, max_new_tokens = 30 } = event.data;
+    const { action, text, modelId: requestedModelId, max_new_tokens = 30 } = event.data;
+
+    if (action === 'stop') {
+        isAborted = true;
+        return;
+    }
 
     if (action === 'load') {
+        const targetModelId = requestedModelId || currentModelId || DEFAULT_MODEL_ID;
+
+        // If this model is already loaded and active, immediately reply ready
+        if (tokenizer && model && currentModelId === targetModelId) {
+            self.postMessage({ status: 'ready', model: currentModelId });
+            return;
+        }
+
         try {
-            if (!tokenizer) {
-                tokenizer = await AutoTokenizer.from_pretrained(modelId, {
-                    progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'tokenizer', ...x })
-                });
-            }
-            if (!model) {
-                model = await AutoModelForCausalLM.from_pretrained(modelId, {
-                    dtype: 'fp32', // Matches decoder_model_merged_quantized.onnx directly without adding suffix
-                    model_file_name: 'decoder_model_merged_quantized',
-                    progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'model', ...x })
-                });
-            }
-            self.postMessage({ status: 'ready' });
+            tokenizer = null;
+            model = null;
+
+            const preset = MODEL_PRESETS[targetModelId] || { id: targetModelId, dtype: 'q4' };
+
+            tokenizer = await AutoTokenizer.from_pretrained(targetModelId, {
+                progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'tokenizer', ...x })
+            });
+
+            const modelOptions: any = {
+                progress_callback: (x: any) => self.postMessage({ status: 'progress', type: 'model', ...x })
+            };
+            if (preset.dtype) modelOptions.dtype = preset.dtype;
+            if (preset.model_file_name) modelOptions.model_file_name = preset.model_file_name;
+
+            model = await AutoModelForCausalLM.from_pretrained(targetModelId, modelOptions);
+            currentModelId = targetModelId;
+
+            self.postMessage({ status: 'ready', model: currentModelId });
         } catch (e) {
             console.error('[WORKER LOAD ERROR]', e);
             self.postMessage({ status: 'error', error: String(e) });
@@ -36,12 +81,10 @@ self.addEventListener('message', async (event) => {
     
     else if (action === 'generate') {
         if (!tokenizer || !model) return;
+        isAborted = false;
         
         try {
-            let prompt = text;
-            if (modelId.includes('LaMini')) {
-                prompt = `Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n${text}\n\n### Response:\n`;
-            }
+            const prompt = text;
             const inputs = tokenizer(prompt);
             
             const initialTokens = Array.from(inputs.input_ids.data);
@@ -54,11 +97,16 @@ self.addEventListener('message', async (event) => {
 
             let input_ids = inputs.input_ids;
             let attention_mask = inputs.attention_mask;
+            const eosTokenId = tokenizer.eos_token_id ?? (tokenizer.model?.eos_token_id ?? 50256);
             
             for (let i = 0; i < max_new_tokens; i++) {
+                if (isAborted) break;
+
                 // 1. Run forward pass
                 const outputs = await model({ input_ids, attention_mask });
                 
+                if (isAborted) break;
+
                 // 2. Extract logits for the last token
                 const seq_len = outputs.logits.dims[1];
                 const vocab_size = outputs.logits.dims[2];
@@ -83,7 +131,7 @@ self.addEventListener('message', async (event) => {
                 }
                 
                 // 4. Extract Top-K (K=40) for Sampling Pool
-                const K = 40;
+                const K = Math.min(40, vocab_size);
                 const topK = [];
                 for (let j = 0; j < vocab_size; j++) {
                     if (topK.length < K) {
@@ -116,10 +164,10 @@ self.addEventListener('message', async (event) => {
                 const alternatives = topK.slice(0, 5).map(alt => ({
                     token: tokenizer.decode([alt.id]),
                     probability: alt.prob,
-                    logProbability: Math.log(alt.prob)
+                    logProbability: Math.log(Math.max(alt.prob, 1e-12))
                 }));
                 
-                // 6. Send to UI
+                // Send to UI
                 self.postMessage({
                     status: 'chunk',
                     token_id: next_token_id,
@@ -127,10 +175,12 @@ self.addEventListener('message', async (event) => {
                     alternatives
                 });
                 
-                // 7. Stop on EOS (GPT-2 eos_token_id is 50256)
-                if (next_token_id === 50256) break;
+                // Stop on EOS
+                if (next_token_id === eosTokenId || (Array.isArray(tokenizer.all_special_ids) && tokenizer.all_special_ids.includes(next_token_id))) {
+                    break;
+                }
                 
-                // 8. Update inputs for next iteration
+                // Update inputs for next iteration
                 const new_input_data = new BigInt64Array(input_ids.data.length + 1);
                 new_input_data.set(input_ids.data);
                 new_input_data[input_ids.data.length] = BigInt(next_token_id);
