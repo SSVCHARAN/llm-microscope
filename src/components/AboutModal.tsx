@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  BookOpen,
-  Layers,
-  Zap,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  ArrowRight,
-  Sliders,
-  Cpu,
-  Compass,
-  Sparkles,
-  Network
-} from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { DeepLensIcon } from './DeepLensLogo';
 
 interface AboutModalProps {
@@ -22,24 +8,57 @@ interface AboutModalProps {
   onClose: () => void;
 }
 
-type TabKey = 'overview' | 'journey' | 'fidelity' | 'modes' | 'caveats';
-
 const STORAGE_KEY = 'llm_microscope_onboarding_dismissed';
+
+const STAGES = [
+  {
+    step: '01',
+    name: 'Tokenization',
+    tag: 'Raw String → Token IDs',
+    desc: 'Cuts raw text into subwords and whitespace tokens, mapping each to an integer ID from the vocabulary.',
+  },
+  {
+    step: '02',
+    name: 'Embedding & Positional Encoding',
+    tag: 'IDs → Continuous Vectors',
+    desc: 'Looks up 768-dimensional coordinate vectors from W_E and injects positional order encodings.',
+  },
+  {
+    step: '03',
+    name: 'QKV Projections',
+    tag: 'Vector Projections (x · W)',
+    desc: 'Multiplies vectors by projection matrices to derive Queries (search), Keys (tags), and Values (payload).',
+  },
+  {
+    step: '04',
+    name: 'Attention Heatmap & Causal Masking',
+    tag: 'Softmax(Q · Kᵀ / √d)',
+    desc: 'Calculates dot-product alignment between tokens, applying a causal mask to prevent peeking into future tokens.',
+  },
+  {
+    step: '05',
+    name: 'Feed-Forward Network (MLP)',
+    tag: 'GELU Gating 4× Expansion',
+    desc: 'Expands dimensions through a 4× layer with non-linear GELU activation to recall factual associations.',
+  },
+  {
+    step: '06',
+    name: 'Logits & Softmax',
+    tag: 'Hidden Space → Vocab Probabilities',
+    desc: 'Projects the final vector across vocabulary columns; Softmax normalizes raw scores into calibrated percentages.',
+  },
+  {
+    step: '07',
+    name: 'Sampling & Autoregressive Decode',
+    tag: 'Temperature, Top-K & Top-P',
+    desc: 'Applies temperature, Top-K, and nucleus (Top-P) probability bounds, then draws the winning next token.',
+  },
+];
 
 export const AboutModal: React.FC<AboutModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabKey>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab') as TabKey;
-      if (['overview', 'journey', 'fidelity', 'modes', 'caveats'].includes(tabParam)) {
-        return tabParam;
-      }
-    }
-    return 'overview';
-  });
   const [dontShowAgain, setDontShowAgain] = useState<boolean>(false);
 
   // Sync initial checkbox state from localStorage
@@ -84,7 +103,6 @@ export const AboutModal: React.FC<AboutModalProps> = ({
     }
     onClose();
   };
-
 
   if (!isOpen) return null;
 
@@ -134,11 +152,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     </span>
                   </h2>
                   <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                    Field Guide &amp; Architecture Manual
+                    The 7 Stages
                   </span>
                 </div>
                 <p className="text-[11px] sm:text-[12px] text-text-muted truncate">
-                  Before you begin: what this instrument shows, how to explore it, and scientific caveats
+                  A single autoregressive token generation step unpacked across 7 physical transformations
                 </p>
               </div>
             </div>
@@ -152,395 +170,35 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             </button>
           </div>
 
-          {/* Navigation Tabs Header */}
-          <div className="flex items-center px-4 sm:px-7 border-b border-border-subtle bg-surface-raised/20 overflow-x-auto custom-scrollbar shrink-0 gap-1 pt-1.5">
-            {[
-              { id: 'overview', label: '1. Overview & Goals', icon: Compass },
-              { id: 'journey', label: '2. The 7 Stages', icon: Layers },
-              { id: 'fidelity', label: '3. Real vs. Simplified', icon: CheckCircle2 },
-              { id: 'modes', label: '4. Inference Modes', icon: Zap },
-              { id: 'caveats', label: '5. Limitations & Tips', icon: AlertTriangle },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabKey)}
-                  className={`flex items-center gap-1.5 py-2.5 px-3 rounded-t-lg font-mono text-[11px] sm:text-[12px] font-semibold whitespace-nowrap transition-all border-b-2 -mb-[1px] focus-ring ${
-                    isActive
-                      ? 'border-primary text-emerald-700 dark:text-emerald-400 bg-surface'
-                      : 'border-transparent text-text-muted hover:text-text-main hover:bg-surface/50'
+          {/* Modal Content: Briefly show the 7 stages */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 text-text-secondary text-[13px] leading-relaxed">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
+              {STAGES.map((s, idx) => (
+                <div
+                  key={s.step}
+                  className={`p-3.5 rounded-xl border border-border bg-surface-raised/70 hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between gap-2 ${
+                    idx === 6 ? 'sm:col-span-2 sm:flex-row sm:items-center' : ''
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-text-muted'}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Scrollable Modal Content */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-7 space-y-6 text-text-secondary text-[13px] leading-relaxed">
-            {/* TAB 1: OVERVIEW */}
-            {activeTab === 'overview' && (
-              <div className="space-y-4">
-                {/* Hero mission - compact and clear */}
-                <div className="p-3.5 sm:p-4 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-mono text-[12px] font-bold uppercase tracking-wider">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <span>Pipeline Overview</span>
-                      <span className="text-border-subtle">•</span>
-                      <span className="text-[10px] text-text-muted font-normal lowercase">~15–20 min exploration</span>
-                    </div>
-                    <p className="text-text-main text-[13px]">
-                      DeepLens AI traces how a Transformer turns raw text into the next token across <strong>7 physical stages</strong>:
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab('journey')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-mono font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 shrink-0 transition-colors w-fit"
-                  >
-                    <span>Detailed Math</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* The 7 Stages - Brief & Visual */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
-                  {[
-                    {
-                      step: '01',
-                      name: 'Tokenization',
-                      io: 'Raw String → IDs',
-                      desc: 'Splits raw text into subwords and maps them to numeric vocabulary IDs.'
-                    },
-                    {
-                      step: '02',
-                      name: 'Embedding & Position',
-                      io: 'IDs → 768-D Vectors',
-                      desc: 'Converts token IDs into continuous vectors and injects word order encodings.'
-                    },
-                    {
-                      step: '03',
-                      name: 'QKV Projections',
-                      io: 'Linear x · W',
-                      desc: 'Projects vectors into Queries (questions), Keys (labels), and Values (content).'
-                    },
-                    {
-                      step: '04',
-                      name: 'Attention Heatmap',
-                      io: 'Softmax(Q·Kᵀ/√d)',
-                      desc: 'Measures token-to-token similarity and routes context using causal masking.'
-                    },
-                    {
-                      step: '05',
-                      name: 'Feed-Forward (MLP)',
-                      io: 'GELU 4× Expansion',
-                      desc: 'Expands dimensions and uses non-linear GELU gates to recall factual knowledge.'
-                    },
-                    {
-                      step: '06',
-                      name: 'Logits & Softmax',
-                      io: 'Hidden → Vocab %',
-                      desc: 'Projects final hidden vector into 50k vocab scores and normalizes to probabilities.'
-                    },
-                    {
-                      step: '07',
-                      name: 'Sampling & Decode',
-                      io: 'Argmax / Top-K / Top-P',
-                      desc: 'Filters the distribution and selects the winning next token autoregressively.'
-                    }
-                  ].map((s, idx) => (
-                    <div
-                      key={s.step}
-                      onClick={() => setActiveTab('journey')}
-                      className={`p-3 rounded-xl border border-border bg-surface-raised hover:border-emerald-500/40 hover:bg-surface transition-all cursor-pointer shadow-sm group flex flex-col justify-between gap-1.5 ${
-                        idx === 6 ? 'sm:col-span-2 sm:flex-row sm:items-center' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold shrink-0 text-[10px] group-hover:bg-emerald-500/20 transition-colors">
-                          {s.step}
-                        </span>
-                        <div className="flex flex-col">
-                          <span className="text-text-main font-semibold text-[12px] group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                            {s.name}
-                          </span>
-                          <span className="text-text-muted font-sans text-[12px] leading-relaxed mt-0.5">
-                            {s.desc}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-surface border border-border-subtle text-emerald-700 dark:text-emerald-400 shrink-0 self-start sm:self-auto font-mono">
-                        {s.io}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: THE 7 STAGES */}
-            {activeTab === 'journey' && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-primary" />
-                    <span>The 7-Stage Architectural Walkthrough</span>
-                  </h3>
-                  <p className="text-[12px] text-text-muted">
-                    In the Architecture Deep-Dive mode, you follow the prompt <code className="text-text-main bg-surface-raised px-1 py-0.5 rounded border border-border-subtle font-mono">"The cat sat on the"</code> through the 7 physical transformations that predict the next token:
-                  </p>
-                </div>
-
-                <div className="space-y-3 font-mono text-[11px]">
-                  {[
-                    {
-                      step: '01',
-                      name: 'Tokenization (Byte-Pair Encoding)',
-                      tag: 'Raw String → Token IDs',
-                      desc: 'The tokenizer cuts raw English into subwords and whitespace tokens, mapping each to an integer ID in the 50,257 GPT-2 vocabulary (e.g., " The" = 464, " cat" = 3797).'
-                    },
-                    {
-                      step: '02',
-                      name: 'Embedding Lookup & Positional Encodings',
-                      tag: 'Token IDs → Continuous Vectors',
-                      desc: 'Token IDs look up 768-dimensional coordinate vectors from W_E. Because Transformers have no inherent sequential direction, sinusoidal positional vectors are added to inject word order.'
-                    },
-                    {
-                      step: '03',
-                      name: 'Self-Attention: Q, K, V Projections',
-                      tag: 'Vector Multiplication (x · W)',
-                      desc: 'Each token is multiplied by three projection matrices (W_Q, W_K, W_V) to derive Query (search questions), Key (index matching tags), and Value (semantic payload to transmit).'
-                    },
-                    {
-                      step: '04',
-                      name: 'Attention Heatmap & Causal Masking',
-                      tag: 'Softmax(Q · K^T / √d)',
-                      desc: 'Measures dot-product similarity between tokens. A Causal Mask forces future tokens to -∞ so the model cannot cheat. Softmax normalizes weights to 100% across each row.'
-                    },
-                    {
-                      step: '05',
-                      name: 'Feed-Forward Network (MLP)',
-                      tag: 'GELU Gating & Knowledge Retrieval',
-                      desc: 'Processes the mixed attention context through a 4× dimension expansion layer. The non-linear GELU activation silences noise (<0) and passes positive features to refine the internal thought.'
-                    },
-                    {
-                      step: '06',
-                      name: 'Unembedding, Logits & Softmax',
-                      tag: 'Hidden Space → Vocabulary Logits',
-                      desc: 'Multiplies the terminal thought vector against the 50,257 word columns of W_U. Softmax converts raw unbounded scores into calibrated percentages, with an interactive Temperature slider (T).'
-                    },
-                    {
-                      step: '07',
-                      name: 'Sampling & Autoregressive Decision',
-                      tag: 'Temperature, Top-K, Top-P (Nucleus)',
-                      desc: 'Demonstrates sampling mechanics: Greedy Argmax (K=1), Top-K filtering, and Top-P (Nucleus) probability mass cutoff, followed by the categorical draw that selects the winning next token.'
-                    }
-                  ].map((s) => (
-                    <div
-                      key={s.step}
-                      className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm"
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold shrink-0 text-[10px]">
-                          {s.step}
-                        </span>
-                        <div className="flex flex-col">
-                          <span className="text-text-main font-semibold text-[12px]">{s.name}</span>
-                          <span className="text-text-muted font-sans text-[12px] leading-relaxed mt-0.5">{s.desc}</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-surface border border-border-subtle text-emerald-700 dark:text-emerald-400 self-start sm:self-center shrink-0">
-                        {s.tag}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: REAL VS SIMPLIFIED */}
-            {activeTab === 'fidelity' && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    <span>Scientific Fidelity: What is Real vs. Simplified</span>
-                  </h3>
-                  <p className="text-[12px] text-text-muted">
-                    We maintain strict technical honesty regarding what data comes directly from real neural networks versus what is pedagogically simplified for visual comprehensibility.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Real Parts */}
-                  <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] flex flex-col gap-3 shadow-sm">
-                    <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-mono text-[12px] font-bold">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>Real Model &amp; Inference Data</span>
-                    </div>
-                    <ul className="space-y-2 text-[12px] text-text-secondary leading-relaxed list-disc list-inside">
-                      <li>
-                        <strong>Real Tokenization:</strong> Uses the actual GPT-2 Byte-Pair Encoding (BPE) vocabulary of 50,257 integer IDs and token prefix conventions.
-                      </li>
-                      <li>
-                        <strong>In-Browser ONNX Neural Network:</strong> The Web Worker engine runs genuine neural models, powered by the state-of-the-art <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">SmolLM2-135M</code> (trained on 2T tokens) via Transformers.js in WebAssembly SIMD.
-                      </li>
-                      <li>
-                        <strong>LM Studio Live Streaming:</strong> Connects to your local inference server (<code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">localhost:1234</code>) over SSE, retrieving actual model tokens, log-probabilities, top-5 candidates, and latency telemetry.
-                      </li>
-                      <li>
-                        <strong>Exact Mathematical Equations:</strong> Softmax, Scaled Dot-Product Attention, Causal Masking, GELU gating, and Top-K/Top-P formulas are implemented without numerical approximations.
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Simplified Parts */}
-                  <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.04] dark:bg-amber-500/[0.06] flex flex-col gap-3 shadow-sm">
-                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-mono text-[12px] font-bold">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                      <span>Pedagogical Simplifications</span>
-                    </div>
-                    <ul className="space-y-2 text-[12px] text-text-secondary leading-relaxed list-disc list-inside">
-                      <li>
-                        <strong>Dimensionality Truncation (d=4 vs d=768):</strong> Full GPT-2 uses 768 dimensions per token (modern models use 4,096+). Displaying 768 simultaneous floating-point numbers would be visual noise; we display 4 representative coordinate dimensions.
-                      </li>
-                      <li>
-                        <strong>Single Representative Block:</strong> Real GPT-2 cascades through 12 consecutive transformer blocks. Stage 1–7 illustrates a single representative forward block pass to make the mechanics clear without 12× redundancy.
-                      </li>
-                      <li>
-                        <strong>Calibrated Weight Matrices:</strong> The 4×4 weight matrices ($W_Q, W_K, W_V, W_U$) shown in the walkthrough use calibrated representative values rather than downloading 500MB of raw weight tensors.
-                      </li>
-                      <li>
-                        <strong>Linear 2D Projection:</strong> Attention heatmaps and vector coordinates represent high-dimensional geometric manifolds projected into 2D screens.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: MODES */}
-            {activeTab === 'modes' && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-primary" />
-                    <span>Understanding the Two Primary Operating Modes</span>
-                  </h3>
-                  <p className="text-[12px] text-text-muted">
-                    Toggle between modes at any time using the center switch in the top navigation bar.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Mode 1 */}
-                  <div className="p-4 rounded-xl border border-border bg-surface-raised flex flex-col gap-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[12px] font-bold text-text-main uppercase tracking-wider flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>1. Architecture Deep-Dive</span>
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold">
-                        White-Box Dissection
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-text-muted leading-relaxed">
-                      A curated, step-by-step walkthrough of a single forward pass. Designed for learning the physics of Transformers.
-                    </p>
-                    <div className="space-y-1.5 font-mono text-[11px] pt-1 border-t border-border-subtle">
-                      <div className="text-text-main font-semibold">Features:</div>
-                      <div className="text-text-muted">✓ Step through all 7 stages manually</div>
-                      <div className="text-text-muted">✓ Interactive Attention Head selector (12 heads)</div>
-                      <div className="text-text-muted">✓ Live Temperature slider (T = 0.1 to 2.0)</div>
-                      <div className="text-text-muted">✓ Interactive cell inspection &amp; focal element reveals</div>
-                    </div>
-                  </div>
-
-                  {/* Mode 2 */}
-                  <div className="p-4 rounded-xl border border-border bg-surface-raised flex flex-col gap-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[12px] font-bold text-text-main uppercase tracking-wider flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                        <span>2. Live Generation Loop</span>
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20 font-bold">
-                        Observability Telemetry
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-text-muted leading-relaxed">
-                      Real-time streaming generation instrument. Inspect competing candidate tokens, logits, and hardware telemetry as words are predicted.
-                    </p>
-                    <div className="space-y-1.5 font-mono text-[11px] pt-1 border-t border-border-subtle">
-                      <div className="text-text-main font-semibold">3 Engine Choices:</div>
-                      <div className="text-text-muted"><strong>✈️ Trace:</strong> Instant, zero-setup recorded real run.</div>
-                      <div className="text-text-muted"><strong>🧠 ONNX:</strong> Real client-side WebWorker neural net.</div>
-                      <div className="text-text-muted"><strong>🔌 LM Studio:</strong> Connects to localhost:1234.</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 5: CAVEATS & TIPS */}
-            {activeTab === 'caveats' && (
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>Important Limitations &amp; Visual Interpretation</span>
-                  </h3>
-                  <p className="text-[12px] text-text-muted">
-                    Keep these technical caveats in mind when analyzing neural network visualizations:
-                  </p>
-                </div>
-
-                <div className="space-y-3 font-sans text-[12px] leading-relaxed">
-                  <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1 shadow-sm">
-                    <span className="font-mono text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                      1. Attention Weights Are Not Conscious "Thinking"
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold shrink-0 text-[10px]">
+                      {s.step}
                     </span>
-                    <p className="text-text-muted">
-                      A high attention score (e.g. 74% between "sat" and "cat") indicates statistical dot-product alignment between vector representations, not conscious intent, belief, or human-like understanding.
-                    </p>
+                    <div className="flex flex-col">
+                      <span className="text-text-main font-semibold text-[13px]">
+                        {s.name}
+                      </span>
+                      <span className="text-text-muted font-sans text-[12px] leading-relaxed mt-0.5">
+                        {s.desc}
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1 shadow-sm">
-                    <span className="font-mono text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                      2. Subword Token Boundaries Matter
-                    </span>
-                    <p className="text-text-muted">
-                      Language models do not read full English words. The space before a word is part of the token (represented visually with <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">_cat</code>). Changing spacing, capitalization, or punctuation creates completely distinct token IDs.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1 shadow-sm">
-                    <span className="font-mono text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                      3. LM Studio Local API Boundaries
-                    </span>
-                    <p className="text-text-muted">
-                      When connecting to LM Studio, standard OpenAI-compatible endpoints expose generated text, chunk tokens, and top log-probabilities. They do not expose intermediate layer activations or weight tensors due to API boundaries.
-                    </p>
-                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-surface border border-border-subtle text-emerald-700 dark:text-emerald-400 shrink-0 self-start sm:self-auto font-mono">
+                    {s.tag}
+                  </span>
                 </div>
-
-                {/* Starting recommendation */}
-                <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] flex items-start gap-3">
-                  <Compass className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-1">
-                    <span className="font-mono text-[12px] font-bold text-text-main">
-                      Recommended First-Time Path:
-                    </span>
-                    <p className="text-[12px] text-text-secondary leading-relaxed">
-                      Begin in <strong>Stage 1 (Tokenization)</strong>, click through stages 1 to 7 using the top stepper, and try clicking on cells in Stage 4 (Attention Map) to inspect specific token connections. Once finished with the walkthrough, jump into the <strong>Live Generation Loop</strong> to test your own prompts!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
           {/* Sticky Footer */}
@@ -556,9 +214,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <span>Don't show this again on this device</span>
             </label>
 
-            {/* Action buttons */}
+            {/* Start Exploring Action */}
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-
               <button
                 type="button"
                 onClick={handleDismiss}
