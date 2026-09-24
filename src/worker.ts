@@ -1,8 +1,8 @@
 import { AutoTokenizer, AutoModelForCausalLM, env, Tensor } from '@huggingface/transformers';
 
-// Configure transformers.js to load models from public /models/ with remote fallback
+// Configure transformers.js to stream models directly from Hugging Face CDN with browser caching
 env.allowLocalModels = true;
-env.useBrowserCache = false;
+env.useBrowserCache = true;
 env.allowRemoteModels = true;
 env.localModelPath = '/models/';
 
@@ -16,16 +16,6 @@ const MODEL_PRESETS: Record<string, ModelPreset> = {
     'HuggingFaceTB/SmolLM2-135M-Instruct': {
         id: 'HuggingFaceTB/SmolLM2-135M-Instruct',
         dtype: 'q4'
-    },
-    'Xenova/gpt2': {
-        id: 'Xenova/gpt2',
-        dtype: 'fp32',
-        model_file_name: 'decoder_model_merged_quantized'
-    },
-    'Xenova/LaMini-GPT-124M': {
-        id: 'Xenova/LaMini-GPT-124M',
-        dtype: 'fp32',
-        model_file_name: 'decoder_model_merged_quantized'
     }
 };
 

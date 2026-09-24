@@ -4,15 +4,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const EXPECTED_ONNX_MODELS = [
-  'HuggingFaceTB/SmolLM2-135M-Instruct',
-  'Xenova/gpt2',
-  'Xenova/LaMini-GPT-124M'
+  'HuggingFaceTB/SmolLM2-135M-Instruct'
 ];
 
 test('ONNX Models - Registry configuration', () => {
-  assert.ok(EXPECTED_ONNX_MODELS.length >= 2, 'Should provide multiple ONNX models');
+  assert.strictEqual(EXPECTED_ONNX_MODELS.length, 1, 'Should have SmolLM2 as the dedicated ONNX model');
   assert.strictEqual(EXPECTED_ONNX_MODELS[0], 'HuggingFaceTB/SmolLM2-135M-Instruct', 'SmolLM2 should be the primary recommended model');
-  assert.ok(EXPECTED_ONNX_MODELS.includes('Xenova/gpt2'), 'Should include classic GPT-2 baseline');
 });
 
 test('ONNX Models - SmolLM2 local asset presence', () => {

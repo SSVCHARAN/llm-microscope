@@ -381,7 +381,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                         <strong>Real Tokenization:</strong> Uses the actual GPT-2 Byte-Pair Encoding (BPE) vocabulary of 50,257 integer IDs and token prefix conventions.
                       </li>
                       <li>
-                        <strong>In-Browser ONNX Neural Network:</strong> The Web Worker engine runs genuine neural models, featuring the state-of-the-art <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">SmolLM2-135M</code> (trained on 2T tokens) alongside <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">GPT-2</code> and <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">LaMini-GPT-124M</code> via Transformers.js in WebAssembly SIMD.
+                        <strong>In-Browser ONNX Neural Network:</strong> The Web Worker engine runs genuine neural models, powered by the state-of-the-art <code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">SmolLM2-135M</code> (trained on 2T tokens) via Transformers.js in WebAssembly SIMD.
                       </li>
                       <li>
                         <strong>LM Studio Live Streaming:</strong> Connects to your local inference server (<code className="font-mono text-[11px] bg-surface px-1 py-0.5 rounded border border-border-subtle">localhost:1234</code>) over SSE, retrieving actual model tokens, log-probabilities, top-5 candidates, and latency telemetry.

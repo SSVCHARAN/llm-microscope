@@ -5,9 +5,7 @@ import { GenerationController, fetchModels } from '../api/lmstudio';
 export type EngineType = 'trace' | 'lmstudio' | 'webworker';
 
 export const ONNX_MODELS = [
-  'HuggingFaceTB/SmolLM2-135M-Instruct',
-  'Xenova/gpt2',
-  'Xenova/LaMini-GPT-124M'
+  'HuggingFaceTB/SmolLM2-135M-Instruct'
 ];
 
 export function useMicroscope() {
