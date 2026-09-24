@@ -184,94 +184,100 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-7 space-y-6 text-text-secondary text-[13px] leading-relaxed">
             {/* TAB 1: OVERVIEW */}
             {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Hero mission */}
-                <div className="p-4 sm:p-5 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08] flex flex-col gap-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-mono text-[12px] font-bold uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span>What is DeepLens AI?</span>
+              <div className="space-y-4">
+                {/* Hero mission - compact and clear */}
+                <div className="p-3.5 sm:p-4 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-mono text-[12px] font-bold uppercase tracking-wider">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <span>Pipeline Overview</span>
+                      <span className="text-border-subtle">•</span>
+                      <span className="text-[10px] text-text-muted font-normal lowercase">~15–20 min exploration</span>
+                    </div>
+                    <p className="text-text-main text-[13px]">
+                      DeepLens AI traces how a Transformer turns raw text into the next token across <strong>7 physical stages</strong>:
+                    </p>
                   </div>
-                  <p className="text-text-main text-[13px] sm:text-[14px] leading-relaxed">
-                    DeepLens AI is an open-source, interactive diagnostic instrument designed to make the internal mechanics of autoregressive Transformer models tangible. Rather than treating large language models as magic black boxes, this instrument unpacks the exact linear algebra, dimensional routing, non-linear activations, and probability distributions that occur during a single token generation step.
-                  </p>
+                  <button
+                    onClick={() => setActiveTab('journey')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-mono font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 shrink-0 transition-colors w-fit"
+                  >
+                    <span>Detailed Math</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
-                {/* Key Learning Objectives */}
-                <div className="flex flex-col gap-3">
-                  <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-primary" />
-                    <span>What You Will Learn Across the Pipeline</span>
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1.5 shadow-sm">
-                      <span className="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                        1. Continuous Representation
-                      </span>
-                      <p className="text-[12px] text-text-muted leading-relaxed">
-                        How discrete characters are mapped into continuous vector geometry where semantic meaning corresponds to mathematical distance.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1.5 shadow-sm">
-                      <span className="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                        2. Dynamic Context Routing
-                      </span>
-                      <p className="text-[12px] text-text-muted leading-relaxed">
-                        How Multi-Head Self-Attention matches Queries to Keys to retrieve relevant past words and synthesize context.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1.5 shadow-sm">
-                      <span className="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                        3. Factual &amp; Non-Linear Activation
-                      </span>
-                      <p className="text-[12px] text-text-muted leading-relaxed">
-                        How Feed-Forward layers use GELU activation gates to silence noise, amplify features, and project factual memories.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl border border-border bg-surface-raised flex flex-col gap-1.5 shadow-sm">
-                      <span className="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                        4. Probabilistic Sampling Decisions
-                      </span>
-                      <p className="text-[12px] text-text-muted leading-relaxed">
-                        How unnormalized logits are transformed via Softmax, temperature, Top-K, and Top-P to pick the next emitted word.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Honest Time Estimates */}
-                <div className="p-4 rounded-xl border border-border bg-surface-raised/60 flex flex-col gap-2.5">
-                  <div className="flex items-center gap-2 text-text-main font-mono text-[12px] font-bold uppercase tracking-wider">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span>Realistic Exploration Time Estimates</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-[11px]">
-                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~15–20 Minutes</span>
-                      <span className="text-text-main font-semibold text-[12px]">First-Pass Walkthrough</span>
-                      <span className="text-text-muted text-[11px] leading-relaxed">
-                        Sequentially reading all 7 stages to build a solid initial mental model of how raw characters transform into predicted tokens.
-                      </span>
-                    </div>
-
-                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~35–50 Minutes</span>
-                      <span className="text-text-main font-semibold text-[12px]">Rigorous Conceptual Study</span>
-                      <span className="text-text-muted text-[11px] leading-relaxed">
-                        Deep mathematical engagement: clicking attention cells, inspecting QKV dot products, and testing temperature and Top-P bounds.
-                      </span>
-                    </div>
-
-                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">15–30+ Minutes</span>
-                      <span className="text-text-main font-semibold text-[12px]">Live Generation &amp; Tuning</span>
-                      <span className="text-text-muted text-[11px] leading-relaxed">
-                        Streaming custom prompts, testing greedy vs. stochastic sampling, and observing candidate probability trees live.
+                {/* The 7 Stages - Brief & Visual */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono">
+                  {[
+                    {
+                      step: '01',
+                      name: 'Tokenization',
+                      io: 'Raw String → IDs',
+                      desc: 'Splits raw text into subwords and maps them to numeric vocabulary IDs.'
+                    },
+                    {
+                      step: '02',
+                      name: 'Embedding & Position',
+                      io: 'IDs → 768-D Vectors',
+                      desc: 'Converts token IDs into continuous vectors and injects word order encodings.'
+                    },
+                    {
+                      step: '03',
+                      name: 'QKV Projections',
+                      io: 'Linear x · W',
+                      desc: 'Projects vectors into Queries (questions), Keys (labels), and Values (content).'
+                    },
+                    {
+                      step: '04',
+                      name: 'Attention Heatmap',
+                      io: 'Softmax(Q·Kᵀ/√d)',
+                      desc: 'Measures token-to-token similarity and routes context using causal masking.'
+                    },
+                    {
+                      step: '05',
+                      name: 'Feed-Forward (MLP)',
+                      io: 'GELU 4× Expansion',
+                      desc: 'Expands dimensions and uses non-linear GELU gates to recall factual knowledge.'
+                    },
+                    {
+                      step: '06',
+                      name: 'Logits & Softmax',
+                      io: 'Hidden → Vocab %',
+                      desc: 'Projects final hidden vector into 50k vocab scores and normalizes to probabilities.'
+                    },
+                    {
+                      step: '07',
+                      name: 'Sampling & Decode',
+                      io: 'Argmax / Top-K / Top-P',
+                      desc: 'Filters the distribution and selects the winning next token autoregressively.'
+                    }
+                  ].map((s, idx) => (
+                    <div
+                      key={s.step}
+                      onClick={() => setActiveTab('journey')}
+                      className={`p-3 rounded-xl border border-border bg-surface-raised hover:border-emerald-500/40 hover:bg-surface transition-all cursor-pointer shadow-sm group flex flex-col justify-between gap-1.5 ${
+                        idx === 6 ? 'sm:col-span-2 sm:flex-row sm:items-center' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold shrink-0 text-[10px] group-hover:bg-emerald-500/20 transition-colors">
+                          {s.step}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-text-main font-semibold text-[12px] group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                            {s.name}
+                          </span>
+                          <span className="text-text-muted font-sans text-[12px] leading-relaxed mt-0.5">
+                            {s.desc}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-surface border border-border-subtle text-emerald-700 dark:text-emerald-400 shrink-0 self-start sm:self-auto font-mono">
+                        {s.io}
                       </span>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
