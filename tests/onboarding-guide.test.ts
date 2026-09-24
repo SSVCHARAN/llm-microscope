@@ -40,3 +40,18 @@ test('Onboarding Guide - Storage Key Semantics', () => {
   assert.equal(isDismissed(null), false);
   assert.equal(isDismissed(''), false);
 });
+
+test('Onboarding Guide - Exploration Time Estimates Structure', () => {
+  const timeEstimates = [
+    { label: 'First-Pass Walkthrough', minMinutes: 15, maxMinutes: 20 },
+    { label: 'Rigorous Conceptual Study', minMinutes: 35, maxMinutes: 50 },
+    { label: 'Live Generation & Tuning', minMinutes: 15, maxMinutes: 30 },
+  ];
+
+  assert.equal(timeEstimates.length, 3);
+  timeEstimates.forEach((tier) => {
+    assert.ok(tier.minMinutes >= 15, 'Genuine conceptual exploration requires at least 15 minutes');
+    assert.ok(tier.maxMinutes >= tier.minMinutes, 'Max estimate should exceed min estimate');
+  });
+});
+

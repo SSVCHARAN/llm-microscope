@@ -10,6 +10,7 @@ import { StageHeader } from './components/StageHeader';
 import { ExplainerCard } from './components/ExplainerCard';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AboutModal } from './components/AboutModal';
+import { DeepLensBrand } from './components/DeepLensLogo';
 
 // 7 Educational Stages (Mode: Architecture Walkthrough)
 import { TokenizationStage } from './components/stages/TokenizationStage';
@@ -29,7 +30,6 @@ import { RawEventInspector } from './components/RawEventInspector';
 
 // Icons
 import {
-  Microscope,
   Zap,
   ArrowRight,
   ArrowLeft,
@@ -265,19 +265,7 @@ export function App() {
         <div className="w-full px-3 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-2 sm:gap-4">
           {/* Left Column: Brand (anchored to the far left) */}
           <div className="flex items-center justify-start shrink-0 min-w-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white dark:text-black shadow-[0_0_16px_rgba(5,150,105,0.3)] dark:shadow-[0_0_16px_rgba(16,185,129,0.4)] shrink-0">
-                <Microscope className="w-4 h-4" />
-              </div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-bold text-[14px] sm:text-[15px] tracking-tight text-text-main font-mono whitespace-nowrap hidden sm:inline">
-                  LLM Microscope
-                </h1>
-                <span className="hidden xl:inline-flex items-center h-5 text-[9px] font-mono uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 rounded border border-emerald-500/20 whitespace-nowrap leading-none">
-                  Observability Instrument
-                </span>
-              </div>
-            </div>
+            <DeepLensBrand />
           </div>
 
           {/* Center Column: View Switcher (dead-center in navbar) */}
@@ -353,8 +341,8 @@ export function App() {
             {/* Field Guide & About Modal Button */}
             <button
               onClick={() => setShowAboutModal(true)}
-              title="About LLM Microscope & Field Guide"
-              aria-label="About LLM Microscope & Field Guide"
+              title="About DeepLens AI & Field Guide"
+              aria-label="About DeepLens AI & Field Guide"
               className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-text-main bg-surface-raised border border-border hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
             >
               <HelpCircle className="w-3.5 h-3.5 text-primary shrink-0" />

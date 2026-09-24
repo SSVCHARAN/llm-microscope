@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Microscope,
   BookOpen,
   Layers,
   Zap,
@@ -16,6 +15,7 @@ import {
   Sparkles,
   Network
 } from 'lucide-react';
+import { DeepLensIcon } from './DeepLensLogo';
 
 interface AboutModalProps {
   isOpen: boolean;
@@ -118,16 +118,20 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-border bg-surface-raised/60 shrink-0 gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-primary text-white dark:text-black flex items-center justify-center shadow-[0_0_16px_rgba(5,150,105,0.35)] shrink-0">
-                <Microscope className="w-5 h-5" />
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 via-surface-raised to-emerald-950/40 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.25)] shrink-0 overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.2)_0%,transparent_70%)]" />
+                <DeepLensIcon className="w-5 h-5" />
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
                   <h2
                     id="about-modal-title"
-                    className="font-mono text-[14px] sm:text-[16px] font-bold tracking-tight text-text-main truncate"
+                    className="flex items-baseline gap-1 font-bold text-[15px] sm:text-[17px] tracking-tight text-text-main font-sans truncate"
                   >
-                    LLM Microscope
+                    <span>Deep<span className="text-emerald-700 dark:text-emerald-400">Lens</span></span>
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 tracking-wider leading-none">
+                      AI
+                    </span>
                   </h2>
                   <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                     Field Guide &amp; Architecture Manual
@@ -180,20 +184,15 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-7 space-y-6 text-text-secondary text-[13px] leading-relaxed">
             {/* TAB 1: OVERVIEW */}
             {activeTab === 'overview' && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-6"
-              >
+              <div className="space-y-6">
                 {/* Hero mission */}
                 <div className="p-4 sm:p-5 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08] flex flex-col gap-2 shadow-sm">
                   <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-mono text-[12px] font-bold uppercase tracking-wider">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span>What is LLM Microscope?</span>
+                    <span>What is DeepLens AI?</span>
                   </div>
                   <p className="text-text-main text-[13px] sm:text-[14px] leading-relaxed">
-                    LLM Microscope is an open-source, interactive diagnostic instrument designed to make the internal mechanics of autoregressive Transformer models tangible. Rather than treating large language models as magic black boxes, this instrument unpacks the exact linear algebra, dimensional routing, non-linear activations, and probability distributions that occur during a single token generation step.
+                    DeepLens AI is an open-source, interactive diagnostic instrument designed to make the internal mechanics of autoregressive Transformer models tangible. Rather than treating large language models as magic black boxes, this instrument unpacks the exact linear algebra, dimensional routing, non-linear activations, and probability distributions that occur during a single token generation step.
                   </p>
                 </div>
 
@@ -249,36 +248,37 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     <span>Realistic Exploration Time Estimates</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-[11px]">
-                    <div className="p-3 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~3 Minutes</span>
-                      <span className="text-text-main font-semibold">Educational Autoplay</span>
-                      <span className="text-text-muted text-[10px]">Hands-free tour cycling all 7 stages and focal highlights automatically.</span>
+                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~15–20 Minutes</span>
+                      <span className="text-text-main font-semibold text-[12px]">First-Pass Walkthrough</span>
+                      <span className="text-text-muted text-[11px] leading-relaxed">
+                        Sequentially reading all 7 stages to build a solid initial mental model of how raw characters transform into predicted tokens.
+                      </span>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~8–12 Minutes</span>
-                      <span className="text-text-main font-semibold">Full Deep-Dive</span>
-                      <span className="text-text-muted text-[10px]">Self-paced exploration: inspecting attention cells, tuning temperature, and testing token projections.</span>
+                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">~35–50 Minutes</span>
+                      <span className="text-text-main font-semibold text-[12px]">Rigorous Conceptual Study</span>
+                      <span className="text-text-muted text-[11px] leading-relaxed">
+                        Deep mathematical engagement: clicking attention cells, inspecting QKV dot products, and testing temperature and Top-P bounds.
+                      </span>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">1–2 Minutes / Run</span>
-                      <span className="text-text-main font-semibold">Live Generation Loop</span>
-                      <span className="text-text-muted text-[10px]">Streaming your own prompts with real-time candidate probability trees.</span>
+                    <div className="p-3.5 rounded-lg bg-surface border border-border-subtle flex flex-col gap-1.5 shadow-sm">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[13px]">15–30+ Minutes</span>
+                      <span className="text-text-main font-semibold text-[12px]">Live Generation &amp; Tuning</span>
+                      <span className="text-text-muted text-[11px] leading-relaxed">
+                        Streaming custom prompts, testing greedy vs. stochastic sampling, and observing candidate probability trees live.
+                      </span>
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* TAB 2: THE 7 STAGES */}
             {activeTab === 'journey' && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
                     <Layers className="w-4 h-4 text-primary" />
@@ -353,17 +353,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* TAB 3: REAL VS SIMPLIFIED */}
             {activeTab === 'fidelity' && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -419,17 +414,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     </ul>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* TAB 4: MODES */}
             {activeTab === 'modes' && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
                     <Zap className="w-4 h-4 text-primary" />
@@ -460,7 +450,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                       <div className="text-text-muted">✓ Step through all 7 stages manually</div>
                       <div className="text-text-muted">✓ Interactive Attention Head selector (12 heads)</div>
                       <div className="text-text-muted">✓ Live Temperature slider (T = 0.1 to 2.0)</div>
-                      <div className="text-text-muted">✓ Educational Autoplay with progressive focal reveal</div>
+                      <div className="text-text-muted">✓ Interactive cell inspection &amp; focal element reveals</div>
                     </div>
                   </div>
 
@@ -486,17 +476,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* TAB 5: CAVEATS & TIPS */}
             {activeTab === 'caveats' && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
+              <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <h3 className="font-mono text-[12px] uppercase tracking-wider font-bold text-text-main flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -548,7 +533,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
 
