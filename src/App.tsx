@@ -45,7 +45,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  HelpCircle
+  HelpCircle,
+  Linkedin
 } from 'lucide-react';
 
 export type AppMode = 'architecture' | 'live_loop';
@@ -337,6 +338,19 @@ export function App() {
                 </div>
               )}
             </div>
+
+            {/* Connect with me (LinkedIn) */}
+            <a
+              href="https://www.linkedin.com/in/charan-ssv-081bb4394/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Connect with me on LinkedIn"
+              aria-label="Connect with me on LinkedIn"
+              className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-[#0a66c2] bg-surface-raised border border-border hover:border-[#0a66c2]/40 hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
+            >
+              <Linkedin className="w-3.5 h-3.5 text-[#0a66c2] shrink-0 fill-[#0a66c2]/10" />
+              <span className="hidden sm:inline">Connect with me</span>
+            </a>
 
             {/* Field Guide & About Modal Button */}
             <button
