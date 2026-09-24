@@ -88,7 +88,7 @@ export const DeepLensBrand: React.FC<DeepLensBrandProps> = ({
         </div>
 
         {showSubtitle && (
-          <span className="hidden xl:inline-flex items-center h-5 text-[9px] font-mono uppercase tracking-widest text-text-muted/80 pl-2 border-l border-border whitespace-nowrap leading-none">
+          <span className="hidden 2xl:inline-flex items-center h-5 text-[9px] font-mono uppercase tracking-widest text-text-muted/80 pl-2 border-l border-border whitespace-nowrap leading-none">
             {subtitleText}
           </span>
         )}

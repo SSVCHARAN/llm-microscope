@@ -159,15 +159,30 @@ html[data-magicui-theme-vt="active"] *::after {
 
 /* Responsive utility fallbacks */
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 @media (min-width: 640px) {
   .sm\:inline {
-    display: inline !important;
+    display: inline;
   }
   .sm\:flex {
-    display: flex !important;
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .md\:inline {
+    display: inline;
+  }
+  .md\:flex {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:flex {
+    display: flex;
   }
 }
 

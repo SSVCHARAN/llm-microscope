@@ -262,15 +262,15 @@ export function App() {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_-20%,rgba(5,150,105,0.05),transparent)] dark:bg-[radial-gradient(ellipse_70%_40%_at_50%_-20%,rgba(16,185,129,0.08),transparent)] z-0" />
 
       {/* Main Top Header Navigation */}
-      <header className="w-full h-16 border-b border-border relative z-30 bg-background/90 backdrop-blur-md shadow-sm transition-colors duration-200">
-        <div className="w-full px-3 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-2 sm:gap-4">
+      <header className="w-full md:h-16 border-b border-border relative z-30 bg-background/90 backdrop-blur-md shadow-sm transition-colors duration-200">
+        <div className="w-full px-3 sm:px-6 lg:px-8 h-14 md:h-full flex items-center justify-between gap-2 sm:gap-4">
           {/* Left Column: Brand (anchored to the far left) */}
           <div className="flex items-center justify-start shrink-0 min-w-0">
             <DeepLensBrand />
           </div>
 
-          {/* Center Column: View Switcher (dead-center in navbar) */}
-          <div className="flex items-center justify-center shrink-0">
+          {/* Center Column: View Switcher (dead-center in navbar on desktop >=md) */}
+          <div className="hidden md:flex items-center justify-center shrink-0">
             <div className="flex items-center h-9 p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm">
               <button
                 onClick={() => setAppMode('architecture')}
@@ -301,19 +301,18 @@ export function App() {
                 <Zap className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Live Generation Loop</span>
                 <span className="sm:hidden">Live Loop</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hidden md:inline font-mono">LM Studio / Trace</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hidden 2xl:inline font-mono">LM Studio / Trace</span>
               </button>
             </div>
           </div>
 
-          {/* Right Column: Telemetry Badge + Theme Toggle (anchored to the far right) */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0">
-            <div className="hidden lg:flex items-center">
+          {/* Right Column: Telemetry Badge + LinkedIn + Guide + Theme Toggle */}
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 shrink-0">
+            <div className="hidden 2xl:flex items-center">
               {appMode === 'architecture' ? (
                 <div className="flex items-center gap-2 h-9 px-3 rounded-xl text-[11px] font-mono text-text-muted bg-surface-raised border border-border whitespace-nowrap shadow-sm">
                   <Cpu className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span className="hidden xl:inline">GPT-2 Forward Pass (d=768)</span>
-                  <span className="xl:hidden">GPT-2 (d=768)</span>
+                  <span>GPT-2 Forward Pass (d=768)</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 h-9 px-3 rounded-xl text-[11px] font-mono text-text-muted bg-surface-raised border border-border whitespace-nowrap shadow-sm">
@@ -346,7 +345,7 @@ export function App() {
               rel="noopener noreferrer"
               title="Connect with me on LinkedIn"
               aria-label="Connect with me on LinkedIn"
-              className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-[#0a66c2] bg-surface-raised border border-border hover:border-[#0a66c2]/40 hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
+              className="flex items-center gap-1.5 h-9 px-2 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-[#0a66c2] bg-surface-raised border border-border hover:border-[#0a66c2]/40 hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
             >
               <Linkedin className="w-3.5 h-3.5 text-[#0a66c2] shrink-0 fill-[#0a66c2]/10" />
               <span className="hidden sm:inline">Connect with me</span>
@@ -357,7 +356,7 @@ export function App() {
               onClick={() => setShowAboutModal(true)}
               title="About DeepLens AI & Field Guide"
               aria-label="About DeepLens AI & Field Guide"
-              className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-text-main bg-surface-raised border border-border hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
+              className="flex items-center gap-1.5 h-9 px-2 sm:px-3 rounded-xl text-[11px] sm:text-[12px] font-mono text-text-muted hover:text-text-main bg-surface-raised border border-border hover:bg-surface-subtle transition-all focus-ring shadow-sm whitespace-nowrap"
             >
               <HelpCircle className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="hidden sm:inline">Guide</span>
@@ -365,6 +364,41 @@ export function App() {
 
             {/* Theme Toggle Button (Magic UI Animated Theme Toggler) */}
             <ThemeToggle />
+          </div>
+        </div>
+
+        {/* Mobile View Switcher Sub-Bar (md:hidden) */}
+        <div className="md:hidden px-3 pb-2.5 pt-0.5 flex items-center justify-center">
+          <div className="w-full grid grid-cols-2 p-1 rounded-xl bg-surface-raised border border-border text-xs font-mono shadow-sm">
+            <button
+              onClick={() => setAppMode('architecture')}
+              role="tab"
+              aria-selected={appMode === 'architecture'}
+              className={`flex items-center justify-center gap-1.5 h-8 rounded-lg whitespace-nowrap transition-all focus-ring ${
+                appMode === 'architecture'
+                  ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
+                  : 'text-text-muted hover:text-text-main hover:bg-surface-subtle'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span>Architecture</span>
+              <span className="text-[9px] px-1 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono">7 Stages</span>
+            </button>
+
+            <button
+              onClick={() => setAppMode('live_loop')}
+              role="tab"
+              aria-selected={appMode === 'live_loop'}
+              className={`flex items-center justify-center gap-1.5 h-8 rounded-lg whitespace-nowrap transition-all focus-ring ${
+                appMode === 'live_loop'
+                  ? 'bg-primary text-white dark:text-black font-bold shadow-[0_0_14px_rgba(5,150,105,0.3)] dark:shadow-[0_0_14px_rgba(16,185,129,0.3)]'
+                  : 'text-text-muted hover:text-text-main hover:bg-surface-subtle'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span>Live Loop</span>
+              <span className="text-[9px] px-1 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono">ONNX</span>
+            </button>
           </div>
         </div>
       </header>
