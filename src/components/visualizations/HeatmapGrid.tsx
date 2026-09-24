@@ -46,7 +46,7 @@ export const HeatmapGrid: React.FC<HeatmapGridProps> = ({
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
       {/* Grid container */}
-      <div className="flex flex-col gap-3 bg-surface border border-border rounded-xl p-3.5 sm:p-5 shadow-sm dark:shadow-2xl transition-colors duration-200 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="flex flex-col gap-3 bg-surface border border-border rounded-xl p-3.5 sm:p-5 shadow-sm dark:shadow-2xl transition-colors duration-200 w-full lg:w-auto lg:shrink-0 max-w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between pb-2 border-b border-border-subtle gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shrink-0" />
